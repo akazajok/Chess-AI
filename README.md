@@ -1,1 +1,1 @@
-# Game-c-vua-c-t-nh-n-ng-AI
+# Chess AI
