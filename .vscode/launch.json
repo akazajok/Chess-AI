@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run Chess Game",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}\\main.exe",
+            "preLaunchTask": "C/C++: build all files",
+            "externalConsole": true,
+            "miDebuggerPath": "C:\\msys64\\ucrt64\\bin\\gdb.exe",
+            // Các thông số khác giữ nguyên như file bạn đã gửi
+        }
+    ]
+}
