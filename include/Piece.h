@@ -36,7 +36,7 @@ public:
     std::pair<int, int> Get_Position(); // Hàm lấy tọa độ quân cờ
     void Set_Position(int row, int col);
     // Hàm thuần ảo: Ép các quân cờ con (Xe, Tượng...) phải tự định nghĩa cách đi riêng
-    // virtual bool IsValidMove(int destX, int destY, Piece *board[8][8]) = 0;
+    virtual bool Is_Valid_Move(int destX, int destY, Piece *grid[8][8]) = 0;
 };
 
 #endif

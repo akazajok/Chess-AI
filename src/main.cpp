@@ -17,7 +17,7 @@ int main()
     chessGame.Set_Up_Board(testLayout);
     // 4. Hiển thị kết quả để kiểm tra
     chessGame.Display();
-    chessGame.Update_Position(1, 0, 6, 0);
+    chessGame.Update_Position(1, 0, 7, 0);
     chessGame.Display();
     cout << "\nTest thanh cong!" << endl;
 
