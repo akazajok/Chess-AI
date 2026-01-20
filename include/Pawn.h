@@ -3,12 +3,12 @@
 
 #include "../include/Piece.h"
 
-class Pawn_Piece : public Piece
+class Pawn : public Piece
 {
 public:
     // Hàm khởi tạo của quân Tốt
-    Pawn_Piece(Color c, int x, int y) : Piece(Name::Pawn, c, x, y) {}
-    ~Pawn_Piece();
+    Pawn(Color color, int row, int col) : Piece(Name::Pawn, color, row, col) {}
+    //~Pawn_Piece();
 };
 
 #endif

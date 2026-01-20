@@ -1,6 +1,6 @@
 #include "../include/Piece.h"
 
-Piece::Piece(Name name, Color color, int x, int y) : name(name), color(color), x(x), y(y) {}
+Piece::Piece(Name name, Color color, int row, int col) : name(name), color(color), row(row), col(col) {}
 
 Piece::~Piece() {}
 
@@ -14,7 +14,12 @@ Color Piece::Get_Color()
     return color;
 }
 
-int Piece::Get_Piece_Coordinate()
+std::pair<int, int> Piece::Get_Position()
 {
-    return x, y;
+    return {row, col};
+}
+void Piece::Set_Position(int row, int col)
+{
+    this->row = row;
+    this->col = col;
 }

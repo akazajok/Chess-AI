@@ -2,21 +2,28 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "C/C++: build all files",
             "type": "cppbuild",
+            "label": "Build Chess Project",
             "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "${workspaceFolder}\\src\\*.cpp",
-                "-I${workspaceFolder}\\include",
+                "${workspaceFolder}/src/*.cpp",
+                "-I${workspaceFolder}/include",
                 "-o",
-                "${workspaceFolder}\\main.exe"
+                "${workspaceFolder}/chess_ai.exe"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
             ],
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "detail": "Trình biên dịch gom tất cả file trong src và include."
         }
     ]
 }
