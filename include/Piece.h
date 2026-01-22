@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <utility>
 
+class Board;
+
 enum class Color : std::uint8_t
 {
     White,
@@ -17,7 +19,8 @@ enum class Name : std::uint8_t
     Bishop,
     Knight,
     Queen,
-    King
+    King,
+    None
 };
 
 class Piece
@@ -31,12 +34,12 @@ public:
     Piece(Name, Color, int row, int col);
     virtual ~Piece(); // xóa bộ nhớ
 
-    Name Get_Name();                    // Hàm xác định quân gì
-    Color Get_Color();                  // Hàm lấy màu quân cờ
-    std::pair<int, int> Get_Position(); // Hàm lấy tọa độ quân cờ
+    Name Get_Name() const;                    // Hàm xác định quân gì
+    Color Get_Color() const;                  // Hàm lấy màu quân cờ
+    std::pair<int, int> Get_Position() const; // Hàm lấy tọa độ quân cờ
     void Set_Position(int row, int col);
     // Hàm thuần ảo: Ép các quân cờ con (Xe, Tượng...) phải tự định nghĩa cách đi riêng
-    virtual bool Is_Valid_Move(int destX, int destY, Piece *grid[8][8]) = 0;
+    virtual bool Is_Valid_Move(int destRow, int destCol, const Board &grid) = 0;
 };
 
 #endif

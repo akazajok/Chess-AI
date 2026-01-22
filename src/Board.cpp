@@ -60,26 +60,50 @@ void Board::Set_Up_Board(std::string board_test)
     }
 }
 
-void Board::Update_Position(int startRow, int startCol, int endRow, int endCol)
+void Board::Check_Move(int startRow, int startCol, int destRow, int destCol)
 {
-    // Nếu vị trí không thay đổi thì không làm gì cả
-    if (startRow == endRow && startCol == endCol)
+    // Nếu là ô trống thì không di chuyển
+    if (grid[startRow][startCol] == nullptr)
         return;
 
-    if (grid[endRow][endCol] != nullptr)
+    // Nếu vị trí không thay đổi thì không làm gì cả
+    if (startRow == destRow && startCol == destCol)
+        return;
+
+    // đích đến không hợp lệ, vượt biên
+    if (destRow < 0 || destRow > 7 || destCol < 0 || destCol > 7)
+        return;
+
+    // kiểm tra đích đến là ô trống, phe mình hay là địch
+    if (grid[destRow][destCol] != nullptr)
     {
-        // xóa bộ nhớ quân cờ cũ ( đã bị ăn ) -> loại bỏ
-        delete grid[endRow][endCol];
-        grid[endRow][endCol] = nullptr;
+        Color color_start = grid[startRow][startCol]->Get_Color();
+        Color color_dest = grid[destRow][destCol]->Get_Color();
+        if (color_start == color_dest)
+            return;
     }
 
-    // cập nhật vị trí mới trên bàn cờ và xóa vị trí cũ
-    grid[endRow][endCol] = grid[startRow][startCol];
+    // kiểm tra quân đi có đúng luật hay không
+    if (grid[startRow][startCol]->Is_Valid_Move(destRow, destCol, *this))
+        Board::Update_Position(startRow, startCol, destRow, destCol);
+}
+
+void Board::Update_Position(int startRow, int startCol, int destRow, int destCol)
+{
+    // Nếu đó là quân địch
+    if (grid[destRow][destCol] != nullptr)
+    {
+        // xóa bộ nhớ quân cờ cũ ( đã bị ăn ) -> loại bỏ
+        delete grid[destRow][destCol];
+        grid[destRow][destCol] = nullptr;
+    }
+
+    // cập nhật quân cờ vào vị trí đích và xóa vị trí cũ
+    grid[destRow][destCol] = grid[startRow][startCol];
     grid[startRow][startCol] = nullptr;
 
-    // tránh trường hợp start không có quân
-    if (grid[endRow][endCol] != nullptr)
-        grid[endRow][endCol]->Set_Position(endRow, endCol); // cập nhật vị trí mới cho con trỏ
+    // cập nhật tọa độ mới cho quân cờ ( con trỏ )
+    grid[destRow][destCol]->Set_Position(destRow, destCol);
 }
 
 // 4. Hàm hiển thị để kiểm tra

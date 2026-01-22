@@ -4,17 +4,17 @@ Piece::Piece(Name name, Color color, int row, int col) : name(name), color(color
 
 Piece::~Piece() {}
 
-Name Piece::Get_Name()
+Name Piece::Get_Name() const
 {
     return name;
 }
 
-Color Piece::Get_Color()
+Color Piece::Get_Color() const
 {
     return color;
 }
 
-std::pair<int, int> Piece::Get_Position()
+std::pair<int, int> Piece::Get_Position() const
 {
     return {row, col};
 }
