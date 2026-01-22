@@ -2,7 +2,8 @@
 #define KING_H
 
 #include "../include/Piece.h"
-
+#include "../include/Board.h"
+#include <cstdlib> 
 class King : public Piece
 {
 public:
