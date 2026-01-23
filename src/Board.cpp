@@ -16,7 +16,17 @@ Board::~Board()
 }
 
 void Board::Set_Up_Board(std::string board_test)
-{
+{   
+    //xoá bàn cũ
+    for (int i = 0; i <= 7; i++) {
+        for (int j = 0; j <= 7; j++) {
+            if (grid[i][j] != nullptr) {
+                delete grid[i][j];
+                grid[i][j] = nullptr;
+            }
+        }
+    }
+
     using PieceCreator = std::function<Piece *(Color, int, int)>;
     std::map<char, PieceCreator> chess = {
         {'p', [](Color color, int row, int col) // hàm lấy quân tốt

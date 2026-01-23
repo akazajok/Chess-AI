@@ -1,8 +1,8 @@
 #include "../include/King.h"
 
-bool King::Is_Valid_Move(int destX, int destY, const Board &grid) {
-    if (abs(row - destX) <= 1 && abs(col-destY) <= 1 && 
-    (abs(row - destX) != 0 || abs(col-destY) != 0))
+bool King::Is_Valid_Move(int destRow, int destCol, const Board &grid) {
+    if (abs(row - destRow) <= 1 && abs(col-destCol) <= 1 && 
+    (abs(row - destRow) != 0 || abs(col-destCol) != 0))
         return true;
     return false;   
 }
