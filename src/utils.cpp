@@ -48,17 +48,3 @@ void displayBoard(string board[8][8]) {
     cout<<"   a  b  c  d  e  f  g  h\n";
 }
 
-int main(){ 
-string board[8][8] = {
-        {"br","bn","bb","bq","bk","bb","bn","br"},  // Đổi ' thành "
-        {"bp","bp","bp","bp","bp","bp","bp","bp"},
-        {" ."," ."," ."," ."," ."," ."," ."," ."}, // Hoặc đơn giản: "."
-        {" ."," ."," ."," ."," ."," ."," ."," ."}, 
-        {" ."," ."," ."," ."," ."," ."," ."," ."}, 
-        {" ."," ."," ."," ."," ."," ."," ."," ."}, 
-        {"wp","wp","wp","wp","wp","wp","wp","wp"}, 
-        {"wr","wn","wb","wq","wk","wb","wn","wr"}
-    };
-
-    return 0;
-}
