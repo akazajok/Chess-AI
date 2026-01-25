@@ -5,7 +5,6 @@
 #include "../include/Board.h"
 #include <cstdlib> // hàm abs()
 
-class Board;
 class Pawn : public Piece
 {
 public:

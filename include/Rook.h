@@ -4,7 +4,6 @@
 #include "../include/Piece.h"
 #include "../include/Board.h"
 
-class Board;
 class Rook : public Piece
 {
 public:

@@ -16,7 +16,9 @@ void Board::Set_Up_Board(std::string board_test)
          { return std::make_unique<Queen>(color, row, col); }}, // hàm lấy quân hậu
         {'k', [](Color color, int row, int col)
          { return std::make_unique<King>(color, row, col); }}}; // hàm lấy quân vua
-    int row = 0, col = 0;                                       // hàng và cột
+
+    int row = 0, col = 0; // hàng và cột
+
     for (int i = 0; i < board_test.size(); i++)
     {
         if (board_test[i] == ' ')
