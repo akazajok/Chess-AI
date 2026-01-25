@@ -6,6 +6,7 @@
 #include <array>
 #include <map>
 #include <string>
+#include <memory>
 
 #include "../include/Piece.h"
 
@@ -16,29 +17,28 @@
 #include "../include/Queen.h"
 #include "../include/King.h"
 
-using BoardGrid = std::array<std::array<Piece *, 8>, 8>;
+using BoardGrid = std::array<std::array<std::unique_ptr<Piece>, 8>, 8>;
 class Board
 {
 private:
     BoardGrid grid;
 
 public:
-    Board();  // hàm khởi tạo bàn cờ
-    ~Board(); // hàm xóa bộ nhớ
-
     // hàm khởi tạo bàn cờ theo yêu cầu ( nhập dữ liệu chữ )
     void Set_Up_Board(std::string board_test);
     void Display(); // Hàm kiểm tra
     // Hàm kiểm tra quân cờ di chuyển có đúng luật không
-    void Check_Move(int startRow, int startCol, int destRow, int destCol);
+    bool Can_Move(int startRow, int startCol, int destRow, int destCol);
     // Hàm di chuyển quân cờ
     void Update_Position(int startRow, int startCol, int destRow, int destCol);
+    // Hàm thực thi lệnh kiểm tra và di chuyển
+    void Execute_Move(int startRow, int startCol, int destRow, int destCol);
     // Hàm lấy dữ liệu quân cờ
     Piece *Get_Piece_At(int row, int col) const
     {
         if (row < 0 || row > 7 || col < 0 || col > 7)
             return nullptr;
-        return grid[row][col];
+        return grid[row][col].get();
     }
 };
 

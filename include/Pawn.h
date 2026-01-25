@@ -2,7 +2,10 @@
 #define PAWN_H
 
 #include "../include/Piece.h"
+#include "../include/Board.h"
+#include <cstdlib> // hàm abs()
 
+class Board;
 class Pawn : public Piece
 {
 public:

@@ -1,37 +1,22 @@
 #include "../include/Board.h"
 
-Board::Board()
-{
-    for (int i = 0; i <= 7; i++)
-        for (int j = 0; j <= 7; j++)
-            grid[i][j] = nullptr;
-}
-
-Board::~Board()
-{
-    for (int i = 0; i <= 7; i++)
-        for (int j = 0; j <= 7; j++)
-            if (grid[i][j] != nullptr)
-                delete grid[i][j];
-}
-
 void Board::Set_Up_Board(std::string board_test)
 {
-    using PieceCreator = std::function<Piece *(Color, int, int)>;
-    std::map<char, PieceCreator> chess = {
-        {'p', [](Color color, int row, int col) // hàm lấy quân tốt
-         { return new Pawn(color, row, col); }},
-        {'r', [](Color color, int row, int col) // hàm lấy quân xe
-         { return new Rook(color, row, col); }},
-        {'b', [](Color color, int row, int col) // hàm lấy quân tịnh
-         { return new Bishop(color, row, col); }},
-        {'n', [](Color color, int row, int col) // hàm lấy quân mã
-         { return new Knight(color, row, col); }},
-        {'q', [](Color color, int row, int col) // hàm lấy quân hậu
-         { return new Queen(color, row, col); }},
-        {'k', [](Color color, int row, int col) // hàm lấy quân vua
-         { return new King(color, row, col); }}};
-    int row = 0, col = 0; // hàng và cột
+    using PieceCreator = std::function<std::unique_ptr<Piece>(Color, int, int)>;
+    std::map<char, PieceCreator> pieceTable = {
+        {'p', [](Color color, int row, int col)
+         { return std::make_unique<Pawn>(color, row, col); }}, // hàm lấy quân tốt
+        {'r', [](Color color, int row, int col)
+         { return std::make_unique<Rook>(color, row, col); }}, // hàm lấy quân xe
+        {'b', [](Color color, int row, int col)
+         { return std::make_unique<Bishop>(color, row, col); }}, // hàm lấy quân tịnh
+        {'n', [](Color color, int row, int col)
+         { return std::make_unique<Knight>(color, row, col); }}, // hàm lấy quân mã
+        {'q', [](Color color, int row, int col)
+         { return std::make_unique<Queen>(color, row, col); }}, // hàm lấy quân hậu
+        {'k', [](Color color, int row, int col)
+         { return std::make_unique<King>(color, row, col); }}}; // hàm lấy quân vua
+    int row = 0, col = 0;                                       // hàng và cột
     for (int i = 0; i < board_test.size(); i++)
     {
         if (board_test[i] == ' ')
@@ -44,7 +29,7 @@ void Board::Set_Up_Board(std::string board_test)
         }
         if (board_test[i] >= '1' && board_test[i] <= '8') // số ô trống
         {
-            col += int(board_test[i] - 48);
+            col += (board_test[i] - '0');
             continue;
         }
         // phân biệt màu quân cờ
@@ -52,27 +37,27 @@ void Board::Set_Up_Board(std::string board_test)
         // chuyển tất cả về chữ thường để kiểm tra, tránh kí tự đặc biệt
         char piece_lower = tolower(board_test[i]);
         // ghim quân lên bàn cờ
-        if (chess.count(piece_lower))
+        if (pieceTable.count(piece_lower))
         {
-            grid[row][col] = chess[piece_lower](color, row, col);
+            grid[row][col] = pieceTable[piece_lower](color, row, col);
             col++;
         }
     }
 }
-
-void Board::Check_Move(int startRow, int startCol, int destRow, int destCol)
+// Hàm kiểm tra các quân cờ có được di chuyển hay không
+bool Board::Can_Move(int startRow, int startCol, int destRow, int destCol)
 {
     // Nếu là ô trống thì không di chuyển
     if (grid[startRow][startCol] == nullptr)
-        return;
+        return false;
 
     // Nếu vị trí không thay đổi thì không làm gì cả
     if (startRow == destRow && startCol == destCol)
-        return;
+        return false;
 
     // đích đến không hợp lệ, vượt biên
     if (destRow < 0 || destRow > 7 || destCol < 0 || destCol > 7)
-        return;
+        return false;
 
     // kiểm tra đích đến là ô trống, phe mình hay là địch
     if (grid[destRow][destCol] != nullptr)
@@ -80,26 +65,24 @@ void Board::Check_Move(int startRow, int startCol, int destRow, int destCol)
         Color color_start = grid[startRow][startCol]->Get_Color();
         Color color_dest = grid[destRow][destCol]->Get_Color();
         if (color_start == color_dest)
-            return;
+            return false; // phe mình thì không di chuyển
     }
-
-    // kiểm tra quân đi có đúng luật hay không
-    if (grid[startRow][startCol]->Is_Valid_Move(destRow, destCol, *this))
-        Board::Update_Position(startRow, startCol, destRow, destCol);
+    // Kiểm tra logic di chuyển của quân cờ
+    return grid[startRow][startCol]->Is_Valid_Move(destRow, destCol, *this);
 }
 
+// di chuyển quân cờ
+void Board::Execute_Move(int startRow, int startCol, int destRow, int destCol)
+{
+    if (Can_Move(startRow, startCol, destRow, destCol))
+        Update_Position(startRow, startCol, destRow, destCol);
+}
+
+// Hàm cập nhật di chuyển quân cờ, ăn quân địch
 void Board::Update_Position(int startRow, int startCol, int destRow, int destCol)
 {
-    // Nếu đó là quân địch
-    if (grid[destRow][destCol] != nullptr)
-    {
-        // xóa bộ nhớ quân cờ cũ ( đã bị ăn ) -> loại bỏ
-        delete grid[destRow][destCol];
-        grid[destRow][destCol] = nullptr;
-    }
-
     // cập nhật quân cờ vào vị trí đích và xóa vị trí cũ
-    grid[destRow][destCol] = grid[startRow][startCol];
+    grid[destRow][destCol] = std::move(grid[startRow][startCol]);
     grid[startRow][startCol] = nullptr;
 
     // cập nhật tọa độ mới cho quân cờ ( con trỏ )

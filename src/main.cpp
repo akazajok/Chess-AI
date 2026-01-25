@@ -12,12 +12,12 @@ int main()
     // 2. Tạo một chuỗi string đại diện cho bàn cờ (8x8 = 64 ký tự)
     // Chữ hoa: Trắng, Chữ thường: Đen, Dấu chấm: Ô trống
     // Đây là cách cực kỳ nhanh để test các trường hợp đặc biệt
-    string testLayout = "8/8/8/8/8/3n4/8/1B6 w - - 0 1";
+    string testLayout = "8/8/8/8/8/k7/P7/8 w - - 0 1";
     // 3. Nạp thế cờ vào bàn cờ
     chessGame.Set_Up_Board(testLayout);
     // 4. Hiển thị kết quả để kiểm tra
     chessGame.Display();
-    chessGame.Check_Move(7, 1, 5, 3);
+    chessGame.Execute_Move(6, 0, 4, 0);
     chessGame.Display();
     cout << "\nTest thanh cong!" << endl;
 
