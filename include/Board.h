@@ -24,10 +24,25 @@ class Board
 private:
     BoardGrid grid;
     char sideToMove;             // Ai là người đi tiếp theo?
-    std::string castlingRights;  // Quyền nhập thành ( vua, xe chưa di chuyển )
-    std::string enPassantTarget; // Bắt tốt qua đường
+    std::string castlingRights;      // Quyền nhập thành ( vua, xe chưa di chuyển )
+    std::string enPassantTarget;     // Bắt tốt qua đường
     int halfmoveClock;           // Luật 50 nước
-    int fullmoveNumber;          // Số lượt đi của ván đấu
+    int fullmoveNumber;         // Số lượt đi của ván đấu
+    //=========Castling Tracker=========//
+    bool whiteKing = false;
+    bool blackKing = false;
+    bool blackRockKing = false;
+    bool blackRockQueen = false;
+    bool whiteRockKing = false;
+    bool whiteRockQueen = false;
+    //==========SPECIAL MOVE LOL========//
+    bool SpecialMove(int startRow, int startCol, int destRow, int destCol); //Check nước đặc biệt
+    void ExecuteSpecialMove(int startRow, int startCol, int destRow, int destCol);//Như cái tên
+    //=========Castling Helper==========//
+    bool IsCastlingMove(int startRow, int startCol, int destRow, int destCol);
+    void ExecuteCastling(int startRow, int startCol, int destRow, int destCol);
+    bool CanCastle(Color color, bool kingside);
+    void UpdateCastlingStat(Color color);
 
 public:
     // hàm khởi tạo bàn cờ theo yêu cầu ( nhập dữ liệu chữ )
