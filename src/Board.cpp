@@ -79,10 +79,88 @@ bool Board::Can_Move(int startRow, int startCol, int destRow, int destCol)
 // di chuyển quân cờ
 void Board::Execute_Move(int startRow, int startCol, int destRow, int destCol)
 {
-    if (Can_Move(startRow, startCol, destRow, destCol))
-        Update_Position(startRow, startCol, destRow, destCol);
+    if (!Can_Move(startRow, startCol, destRow, destCol))
+        return;
+
+    Piece* piece=Get_Piece_At(startRow, startCol);
+    //Kiểm nước đặc biệt
+    if (SpecialMove(startRow, startCol, destRow, destCol)){
+        
+        ExecuteSpecialMove(startRow, startCol, destRow, destCol);
+        return;
+    }
+    //Rồi đi như bth
+    Update_Position(startRow, startCol, destRow, destCol);
+}
+//======================SPECIAL SECTION============================//
+bool Board::SpecialMove(int startRow, int startCol, int destRow, int destCol){
+    Piece* piece = Get_Piece_At(startRow, startCol);
+
+    if (IsCastlingMove(startRow,startCol,destRow,destCol))
+        return true;
+    //Thêm Enpassant với promotion vào đây
+    //
+    //
+    return false;
+}
+void Board::ExecuteSpecialMove(int startRow, int startCol, int destRow, int destCol){
+    
+    //Bước xử lí phù hợp
+    if (IsCastlingMove(startRow, startCol, destRow, destCol)){
+        ExecuteCastling(startRow,startCol,destRow,destCol);
+        return;
+    }
+    //Placeholder cho enpassant với phong hậu
+    //
+    //
+}
+//===============================================================//
+
+//=======================Castling Func=======================//
+bool Board::IsCastlingMove(int startRow, int startCol, int destRow, int destCol){
+    Piece* piece = Get_Piece_At(startRow,startCol);
+    if (piece->Get_Name() == Name::King && //Nếu start là vua, end là rook và sang ngang 2 ô
+        destRow == startRow &&
+        abs(destCol-startCol)==2)
+    return true;
+}
+bool Board::CanCastle(Color color, bool kingside){
+    //logic nhập thành placeholder
+    return true;
+}
+void Board::UpdateCastlingStat(Color color){
+    if (color == Color::White){
+        whiteKing = true;
+        whiteRockKing = true;
+        whiteRockQueen = true;
+    }
+    else
+    {
+        blackKing = true;
+        blackRockKing = true;
+        blackRockQueen = true;
+    }
 }
 
+void Board::ExecuteCastling(int startRow, int startCol, int destRow, int destCol){
+    Piece* king=Get_Piece_At(startRow,startCol);
+    Color color=king->Get_Color();
+    bool isKingside = (destCol>startCol);
+
+    //Di Chuyển Vua
+    Update_Position(startRow, startCol, destRow, destCol);
+    
+    //Di Chuyển Xe
+    int rookStartCol = isKingside ? 7:0;
+    int rookDestCol = isKingside ? destCol -1:destCol+1;   //DestCol là của vua nhá, đừng nhìn nhầm 
+    Update_Position(startRow,rookStartCol,destRow,rookDestCol);
+
+    //Update Stat
+    UpdateCastlingStat(color);
+
+//=======================================================//
+
+}
 // Hàm cập nhật di chuyển quân cờ, ăn quân địch
 void Board::Update_Position(int startRow, int startCol, int destRow, int destCol)
 {
