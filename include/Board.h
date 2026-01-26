@@ -23,10 +23,8 @@ class Board
 {
 private:
     BoardGrid grid;
-
-protected:
     char sideToMove;             // Ai là người đi tiếp theo?
-    std::string castlingRights;  // Quyền nhập thành
+    std::string castlingRights;  // Quyền nhập thành ( vua, xe chưa di chuyển )
     std::string enPassantTarget; // Bắt tốt qua đường
     int halfmoveClock;           // Luật 50 nước
     int fullmoveNumber;          // Số lượt đi của ván đấu
