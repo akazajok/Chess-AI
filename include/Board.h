@@ -7,6 +7,7 @@
 #include <map>
 #include <string>
 #include <memory>
+#include <sstream>
 
 #include "../include/Piece.h"
 
@@ -23,9 +24,16 @@ class Board
 private:
     BoardGrid grid;
 
+protected:
+    char sideToMove;             // Ai là người đi tiếp theo?
+    std::string castlingRights;  // Quyền nhập thành
+    std::string enPassantTarget; // Bắt tốt qua đường
+    int halfmoveClock;           // Luật 50 nước
+    int fullmoveNumber;          // Số lượt đi của ván đấu
+
 public:
     // hàm khởi tạo bàn cờ theo yêu cầu ( nhập dữ liệu chữ )
-    void Set_Up_Board(std::string board_test);
+    void Set_Up_Board(std::string &FEN);
     void Display(); // Hàm kiểm tra
     // Hàm kiểm tra quân cờ di chuyển có đúng luật không
     bool Can_Move(int startRow, int startCol, int destRow, int destCol);

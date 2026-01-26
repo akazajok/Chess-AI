@@ -1,7 +1,12 @@
 #include "../include/Board.h"
 
-void Board::Set_Up_Board(std::string board_test)
+void Board::Set_Up_Board(std::string &FEN)
 {
+    // tách chuỗi fen để xử lí
+    std::stringstream fen(FEN);
+    std::string piecePlacement;
+    fen >> piecePlacement >> sideToMove >> castlingRights >> enPassantTarget >> halfmoveClock >> fullmoveNumber;
+
     using PieceCreator = std::function<std::unique_ptr<Piece>(Color, int, int)>;
     std::map<char, PieceCreator> pieceTable = {
         {'p', [](Color color, int row, int col)
@@ -19,25 +24,23 @@ void Board::Set_Up_Board(std::string board_test)
 
     int row = 0, col = 0; // hàng và cột
 
-    for (int i = 0; i < board_test.size(); i++)
+    for (int i = 0; i < piecePlacement.size(); i++)
     {
-        if (board_test[i] == ' ')
-            break;
-        if (board_test[i] == '/') // xuống hàng
+        if (piecePlacement[i] == '/') // xuống hàng
         {
             row++;
             col = 0;
             continue;
         }
-        if (board_test[i] >= '1' && board_test[i] <= '8') // số ô trống
+        if (piecePlacement[i] >= '1' && piecePlacement[i] <= '8') // số ô trống
         {
-            col += (board_test[i] - '0');
+            col += (piecePlacement[i] - '0');
             continue;
         }
         // phân biệt màu quân cờ
-        Color color = (islower(board_test[i])) ? Color::Black : Color::White;
+        Color color = (islower(piecePlacement[i])) ? Color::Black : Color::White;
         // chuyển tất cả về chữ thường để kiểm tra, tránh kí tự đặc biệt
-        char piece_lower = tolower(board_test[i]);
+        char piece_lower = tolower(piecePlacement[i]);
         // ghim quân lên bàn cờ
         if (pieceTable.count(piece_lower))
         {

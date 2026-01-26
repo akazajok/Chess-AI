@@ -8,12 +8,12 @@ int main()
 {
     Board chessGame;
 
-    string testLayout = "8/8/8/8/8/3Q4/8/8 w - - 0 1";
+    string testLayout = "8/8/8/8/8/8/3N4/8 w - - 0 1";
 
     chessGame.Set_Up_Board(testLayout);
 
     chessGame.Display();
-    chessGame.Execute_Move(5, 3, 0, 3);
+    chessGame.Execute_Move(6, 3, 4, 4);
     chessGame.Display();
     cout << "\nTest thanh cong!" << endl;
 
