@@ -28,6 +28,9 @@ private:
     std::string enPassantTarget;     // Bắt tốt qua đường
     int halfmoveClock;           // Luật 50 nước
     int fullmoveNumber;         // Số lượt đi của ván đấu
+    //==========SPECIAL MOVE LOL========//
+    bool SpecialMove(int startRow, int startCol, int destRow, int destCol); //Check nước đặc biệt
+    void ExecuteSpecialMove(int startRow, int startCol, int destRow, int destCol);//Như cái tên
     //=========Castling Tracker=========//
     bool whiteKing = false;
     bool blackKing = false;
@@ -35,14 +38,13 @@ private:
     bool blackRockQueen = false;
     bool whiteRockKing = false;
     bool whiteRockQueen = false;
-    //==========SPECIAL MOVE LOL========//
-    bool SpecialMove(int startRow, int startCol, int destRow, int destCol); //Check nước đặc biệt
-    void ExecuteSpecialMove(int startRow, int startCol, int destRow, int destCol);//Như cái tên
     //=========Castling Helper==========//
     bool IsCastlingMove(int startRow, int startCol, int destRow, int destCol);
     void ExecuteCastling(int startRow, int startCol, int destRow, int destCol);
     bool CanCastle(Color color, bool kingside);
     void UpdateCastlingStat(Color color);
+    void ParseCastlingRights(const std::string& rights);//Giải mã FEN của Castling
+    void TrackPieceMovement(int startRow, int startCol);//Track đã di chuyển hay chưa, có thể recycle
 
 public:
     // hàm khởi tạo bàn cờ theo yêu cầu ( nhập dữ liệu chữ )
