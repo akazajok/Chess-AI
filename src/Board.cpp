@@ -7,6 +7,9 @@ void Board::Set_Up_Board(std::string &FEN)
     std::string piecePlacement;
     fen >> piecePlacement >> sideToMove >> castlingRights >> enPassantTarget >> halfmoveClock >> fullmoveNumber;
 
+    //Parse CastlingRights//
+    ParseCastlingRights(castlingRights);
+    
     using PieceCreator = std::function<std::unique_ptr<Piece>(Color, int, int)>;
     std::map<char, PieceCreator> pieceTable = {
         {'p', [](Color color, int row, int col)
@@ -114,12 +117,12 @@ void Board::ExecuteSpecialMove(int startRow, int startCol, int destRow, int dest
     //
     //
 }
-//===============================================================//
+//===========================================================//
 
 //=======================Castling Func=======================//
 bool Board::IsCastlingMove(int startRow, int startCol, int destRow, int destCol){
     Piece* piece = Get_Piece_At(startRow,startCol);
-    if (piece->Get_Name() == Name::King && //Nếu start là vua, end là rook và sang ngang 2 ô
+    if (piece->Get_Name() == Name::King && //Nếu start là vua và sang ngang 2 ô
         destRow == startRow &&
         abs(destCol-startCol)==2)
     return true;
