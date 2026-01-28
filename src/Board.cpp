@@ -84,7 +84,9 @@ void Board::Execute_Move(int startRow, int startCol, int destRow, int destCol)
 {
     if (!Can_Move(startRow, startCol, destRow, destCol))
         return;
-
+    
+    //Track Movement trước mỗi nước đi
+    TrackPieceMovement(startRow, startCol);
     Piece* piece=Get_Piece_At(startRow, startCol);
     //Kiểm nước đặc biệt
     if (SpecialMove(startRow, startCol, destRow, destCol)){
@@ -135,12 +137,12 @@ bool Board::CanCastle(Color color, bool kingside){
     if(color==Color::Black && blackKing) return false;
     //Check Rook di chuyển chưa
     if (color == Color::White){
-        if(kingside&&whiteRockKing) return false;
-        if(!kingside&&whiteRockQueen) return false;
+        if(kingside&&whiteRookKing) return false;
+        if(!kingside&&whiteRookQueen) return false;
     }
     else{
-        if(kingside&&blackRockKing) return false;
-        if(!kingside&&blackRockQueen) return false;
+        if(kingside&&blackRookKing) return false;
+        if(!kingside&&blackRookQueen) return false;
     }
     //Check đường đi trống không
     int kingrow = (color==Color::White)?7:0;
@@ -162,14 +164,14 @@ bool Board::CanCastle(Color color, bool kingside){
 void Board::UpdateCastlingStat(Color color){
     if (color == Color::White){
         whiteKing = true;
-        whiteRockKing = true;
-        whiteRockQueen = true;
+        whiteRookKing = true;
+        whiteRookQueen = true;
     }
     else
     {
         blackKing = true;
-        blackRockKing = true;
-        blackRockQueen = true;
+        blackRookKing = true;
+        blackRookQueen = true;
     }
 }
 
@@ -192,19 +194,35 @@ void Board::ExecuteCastling(int startRow, int startCol, int destRow, int destCol
 
 void Board::ParseCastlingRights(const std::string & rights){
     //reset về true(để không nhập thành được)
-    whiteKing=blackKing=whiteRockKing=whiteRockQueen=blackRockKing=blackRockQueen=true;
+    whiteKing=blackKing=whiteRookKing=whiteRookQueen=blackRookKing=blackRookQueen=true;
     //parse kí hiệu trong fen
     for (char c :rights){
         switch(c){
-            case 'K': whiteRockKing=whiteKing=false; break;
-            case 'Q': whiteRockQueen=whiteKing=false; break;
-            case 'k': blackRockKing=blackKing=false; break;
-            case 'q': blackRockQueen=blackKing=false; break;
+            case 'K': whiteRookKing=whiteKing=false; break;
+            case 'Q': whiteRookQueen=whiteKing=false; break;
+            case 'k': blackRookKing=blackKing=false; break;
+            case 'q': blackRookQueen=blackKing=false; break;
         }
     }
 }
 
-
+void Board::TrackPieceMovement(int startRow, int startCol){
+    Piece*piece=Get_Piece_At(startRow,startCol);
+    if(piece->Get_Name()==Name::King){
+        if(piece->Get_Color()==Color::White) whiteKing=true;//true = vua đã di chuyển
+        else blackKing=true;
+    }
+    //Check start pos của rook để phân loại xe bên nào
+    else if(piece->Get_Name()==Name::Rook){
+        if(piece->Get_Color()==Color::White){
+            if (startRow==7 && startCol==0) whiteRookQueen=true;//true = xe đã di chuyển
+            if (startRow==7 && startCol==7) whiteRookKing = true;}
+        else {
+            if (startRow == 0 && startCol == 0) blackRookQueen = true; 
+            if (startRow == 0 && startCol == 7) blackRookKing = true;  
+        }
+    }
+}   
 
 //=======================================================//
 

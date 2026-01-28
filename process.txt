@@ -1,0 +1,21 @@
+========Castling============
+    ParseCastlingRights() - Đọc từ FEN string, set initial state
+    TrackPieceMovement() - Track khi King/Rook di chuyển trong game
+    CanCastle() - Kiểm tra tất cả điều kiện nhập thành
+    IsCastlingMove() - Dùng CanCastle() để validate
+    ExecuteCastling() - Thực hiện nhập thành nếu hợp lệ
+    Ví dụ:
+        Player input: King từ e1 (4,7) đến g1 (6,7)
+            ↓
+        IsCastlingMove(7, 4, 7, 6):
+            - King di chuyển 2 ô ngang? ✓
+            - isKingside = (6 > 4) = true
+            - Gọi CanCastle(White, true)
+            ↓  
+        CanCastle(White, true):
+            - whiteKing đã move? Nếu false thì OK
+            - whiteRockKing đã move? Nếu false thì OK  
+            - Ô f1, g1 có trống? Nếu có thì OK
+            - Return true
+            ↓
+        ExecuteCastling được gọi

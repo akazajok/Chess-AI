@@ -34,10 +34,10 @@ private:
     //=========Castling Tracker=========//
     bool whiteKing = false;//false = chưa di chuyển
     bool blackKing = false;
-    bool blackRockKing = false;
-    bool blackRockQueen = false;
-    bool whiteRockKing = false;
-    bool whiteRockQueen = false;
+    bool blackRookKing = false;
+    bool blackRookQueen = false;
+    bool whiteRookKing = false;
+    bool whiteRookQueen = false;
     //=========Castling Helper==========//
     bool IsCastlingMove(int startRow, int startCol, int destRow, int destCol);
     void ExecuteCastling(int startRow, int startCol, int destRow, int destCol);
