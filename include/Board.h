@@ -32,7 +32,7 @@ private:
     bool SpecialMove(int startRow, int startCol, int destRow, int destCol); //Check nước đặc biệt
     void ExecuteSpecialMove(int startRow, int startCol, int destRow, int destCol);//Như cái tên
     //=========Castling Tracker=========//
-    bool whiteKing = false;
+    bool whiteKing = false;//false = chưa di chuyển
     bool blackKing = false;
     bool blackRockKing = false;
     bool blackRockQueen = false;

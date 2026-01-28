@@ -160,10 +160,26 @@ void Board::ExecuteCastling(int startRow, int startCol, int destRow, int destCol
 
     //Update Stat
     UpdateCastlingStat(color);
+}
+
+void Board::ParseCastlingRights(const std::string & rights){
+    //reset về true(để không nhập thành được)
+    whiteKing=blackKing=whiteRockKing=whiteRockQueen=blackRockKing=blackRockQueen=true;
+    //parse kí hiệu trong fen
+    for (char c :rights){
+        switch(c){
+            case 'K': whiteRockKing=whiteKing=false; break;
+            case 'Q': whiteRockQueen=whiteKing=false; break;
+            case 'k': blackRockKing=blackKing=false; break;
+            case 'q': blackRockQueen=blackKing=false; break;
+        }
+    }
+}
+
+
 
 //=======================================================//
 
-}
 // Hàm cập nhật di chuyển quân cờ, ăn quân địch
 void Board::Update_Position(int startRow, int startCol, int destRow, int destCol)
 {
