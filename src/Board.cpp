@@ -88,7 +88,6 @@ void Board::Execute_Move(int startRow, int startCol, int destRow, int destCol)
     Piece* piece=Get_Piece_At(startRow, startCol);
     //Kiểm nước đặc biệt
     if (SpecialMove(startRow, startCol, destRow, destCol)){
-        
         ExecuteSpecialMove(startRow, startCol, destRow, destCol);
         return;
     }
@@ -125,10 +124,39 @@ bool Board::IsCastlingMove(int startRow, int startCol, int destRow, int destCol)
     if (piece->Get_Name() == Name::King && //Nếu start là vua và sang ngang 2 ô
         destRow == startRow &&
         abs(destCol-startCol)==2)
-    return true;
+
+        {bool isKingside = (destCol>startCol);
+        return CanCastle(piece->Get_Color(), isKingside);}
+    return false;
 }
 bool Board::CanCastle(Color color, bool kingside){
-    //logic nhập thành placeholder
+    //Check King di chuyển chưa
+    if(color==Color::White && whiteKing) return false;
+    if(color==Color::Black && blackKing) return false;
+    //Check Rook di chuyển chưa
+    if (color == Color::White){
+        if(kingside&&whiteRockKing) return false;
+        if(!kingside&&whiteRockQueen) return false;
+    }
+    else{
+        if(kingside&&blackRockKing) return false;
+        if(!kingside&&blackRockQueen) return false;
+    }
+    //Check đường đi trống không
+    int kingrow = (color==Color::White)?7:0;
+    if (kingside){
+        if(Get_Piece_At(kingrow,5)!=nullptr|| //kingside sẽ check f1-g1 hoặc f8-g8
+            Get_Piece_At(kingrow,6)!=nullptr)
+            return false;
+    }
+    else{
+        if(Get_Piece_At(kingrow,1)!=nullptr||//queenside sẽ check b1-c1-d1 hoặc b8-c8-d8
+            Get_Piece_At(kingrow,2)!=nullptr||
+            Get_Piece_At(kingrow,3)!=nullptr)
+            return false;
+    }
+
+
     return true;
 }
 void Board::UpdateCastlingStat(Color color){
