@@ -32,12 +32,14 @@ private:
     bool SpecialMove(int startRow, int startCol, int destRow, int destCol); //Check nước đặc biệt
     void ExecuteSpecialMove(int startRow, int startCol, int destRow, int destCol);//Như cái tên
     //=========Castling Tracker=========//
-    bool whiteKing = false;//false = chưa di chuyển
-    bool blackKing = false;
-    bool blackRookKing = false;
-    bool blackRookQueen = false;
-    bool whiteRookKing = false;
-    bool whiteRookQueen = false;
+    struct CastlingFlags {
+        bool whiteKing : 1;    
+        bool blackKing : 1;      
+        bool whiteRookKing : 1;  
+        bool whiteRookQueen : 1; 
+        bool blackRookKing : 1;  
+        bool blackRookQueen : 1;
+    } castlingFlags = {false}; 
     //=========Castling Helper==========//
     bool IsCastlingMove(int startRow, int startCol, int destRow, int destCol);
     void ExecuteCastling(int startRow, int startCol, int destRow, int destCol);

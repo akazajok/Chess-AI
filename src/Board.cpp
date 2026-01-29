@@ -85,14 +85,16 @@ void Board::Execute_Move(int startRow, int startCol, int destRow, int destCol)
     if (!Can_Move(startRow, startCol, destRow, destCol))
         return;
     
-    //Track Movement trước mỗi nước đi
-    TrackPieceMovement(startRow, startCol);
     Piece* piece=Get_Piece_At(startRow, startCol);
-    //Kiểm nước đặc biệt
+    
+    //Kiểm nước đặc biệt TRƯỚC KHI track movement
     if (SpecialMove(startRow, startCol, destRow, destCol)){
         ExecuteSpecialMove(startRow, startCol, destRow, destCol);
         return;
     }
+    
+    TrackPieceMovement(startRow, startCol);
+    
     //Rồi đi như bth
     Update_Position(startRow, startCol, destRow, destCol);
 }
@@ -123,6 +125,8 @@ void Board::ExecuteSpecialMove(int startRow, int startCol, int destRow, int dest
 //=======================Castling Func=======================//
 bool Board::IsCastlingMove(int startRow, int startCol, int destRow, int destCol){
     Piece* piece = Get_Piece_At(startRow,startCol);
+
+    if (!piece) return false;
     if (piece->Get_Name() == Name::King && //Nếu start là vua và sang ngang 2 ô
         destRow == startRow &&
         abs(destCol-startCol)==2)
@@ -132,94 +136,84 @@ bool Board::IsCastlingMove(int startRow, int startCol, int destRow, int destCol)
     return false;
 }
 bool Board::CanCastle(Color color, bool kingside){
-    //Check King di chuyển chưa
-    if(color==Color::White && whiteKing) return false;
-    if(color==Color::Black && blackKing) return false;
-    //Check Rook di chuyển chưa
-    if (color == Color::White){
-        if(kingside&&whiteRookKing) return false;
-        if(!kingside&&whiteRookQueen) return false;
-    }
-    else{
-        if(kingside&&blackRookKing) return false;
-        if(!kingside&&blackRookQueen) return false;
-    }
-    //Check đường đi trống không
-    int kingrow = (color==Color::White)?7:0;
-    if (kingside){
-        if(Get_Piece_At(kingrow,5)!=nullptr|| //kingside sẽ check f1-g1 hoặc f8-g8
-            Get_Piece_At(kingrow,6)!=nullptr)
-            return false;
-    }
-    else{
-        if(Get_Piece_At(kingrow,1)!=nullptr||//queenside sẽ check b1-c1-d1 hoặc b8-c8-d8
-            Get_Piece_At(kingrow,2)!=nullptr||
-            Get_Piece_At(kingrow,3)!=nullptr)
-            return false;
-    }
-
-
-    return true;
+    if((color == Color::White && castlingFlags.whiteKing) || 
+       (color == Color::Black && castlingFlags.blackKing)) 
+        return false;
+    
+    bool rookMoved = (color == Color::White) ? 
+        (kingside ? castlingFlags.whiteRookKing : castlingFlags.whiteRookQueen) :
+        (kingside ? castlingFlags.blackRookKing : castlingFlags.blackRookQueen);
+    if(rookMoved) return false;
+    
+    int row = (color == Color::White) ? 7 : 0;
+    return kingside ? 
+        (!Get_Piece_At(row,5) && !Get_Piece_At(row,6)) :  
+        (!Get_Piece_At(row,1) && !Get_Piece_At(row,2) && !Get_Piece_At(row,3)); 
 }
 void Board::UpdateCastlingStat(Color color){
     if (color == Color::White){
-        whiteKing = true;
-        whiteRookKing = true;
-        whiteRookQueen = true;
+        castlingFlags.whiteKing = true;
+        castlingFlags.whiteRookKing = true;
+        castlingFlags.whiteRookQueen = true;
     }
     else
     {
-        blackKing = true;
-        blackRookKing = true;
-        blackRookQueen = true;
+        castlingFlags.blackKing = true;
+        castlingFlags.blackRookKing = true;
+        castlingFlags.blackRookQueen = true;
     }
 }
 
 void Board::ExecuteCastling(int startRow, int startCol, int destRow, int destCol){
-    Piece* king=Get_Piece_At(startRow,startCol);
-    Color color=king->Get_Color();
-    bool isKingside = (destCol>startCol);
-
-    //Di Chuyển Vua
-    Update_Position(startRow, startCol, destRow, destCol);
+    bool isKingside = (destCol > startCol);
     
-    //Di Chuyển Xe
-    int rookStartCol = isKingside ? 7:0;
-    int rookDestCol = isKingside ? destCol -1:destCol+1;   //DestCol là của vua nhá, đừng nhìn nhầm 
-    Update_Position(startRow,rookStartCol,destRow,rookDestCol);
+    Update_Position(startRow, startCol, destRow, destCol); // Move King
 
-    //Update Stat
-    UpdateCastlingStat(color);
+    int rookStartCol = isKingside ? 7 : 0;
+    int rookDestCol = isKingside ? destCol - 1 : destCol + 1;
+    Update_Position(destRow, rookStartCol, destRow, rookDestCol); // Move Rook
+    
+    UpdateCastlingStat(Get_Piece_At(destRow, destCol)->Get_Color());
 }
 
 void Board::ParseCastlingRights(const std::string & rights){
     //reset về true(để không nhập thành được)
-    whiteKing=blackKing=whiteRookKing=whiteRookQueen=blackRookKing=blackRookQueen=true;
-    //parse kí hiệu trong fen
-    for (char c :rights){
+    castlingFlags = {true, true, true, true, true, true};
+    
+    //parse kí hiệu trong fen - tối ưu logic
+    for (char c : rights){
         switch(c){
-            case 'K': whiteRookKing=whiteKing=false; break;
-            case 'Q': whiteRookQueen=whiteKing=false; break;
-            case 'k': blackRookKing=blackKing=false; break;
-            case 'q': blackRookQueen=blackKing=false; break;
+            case 'K': castlingFlags.whiteRookKing = castlingFlags.whiteKing = false; break;
+            case 'Q': castlingFlags.whiteRookQueen = castlingFlags.whiteKing = false; break;
+            case 'k': castlingFlags.blackRookKing = castlingFlags.blackKing = false; break;
+            case 'q': castlingFlags.blackRookQueen = castlingFlags.blackKing = false; break;
+            case '-': break; 
         }
     }
 }
 
 void Board::TrackPieceMovement(int startRow, int startCol){
-    Piece*piece=Get_Piece_At(startRow,startCol);
-    if(piece->Get_Name()==Name::King){
-        if(piece->Get_Color()==Color::White) whiteKing=true;//true = vua đã di chuyển
-        else blackKing=true;
+    Piece* piece = Get_Piece_At(startRow, startCol);
+    if (!piece) return;
+    
+    Name pieceName = piece->Get_Name();
+    Color pieceColor = piece->Get_Color();
+    
+    if(pieceName == Name::King){
+        if(pieceColor == Color::White) castlingFlags.whiteKing = true;
+        else castlingFlags.blackKing = true;
     }
-    //Check start pos của rook để phân loại xe bên nào
-    else if(piece->Get_Name()==Name::Rook){
-        if(piece->Get_Color()==Color::White){
-            if (startRow==7 && startCol==0) whiteRookQueen=true;//true = xe đã di chuyển
-            if (startRow==7 && startCol==7) whiteRookKing = true;}
-        else {
-            if (startRow == 0 && startCol == 0) blackRookQueen = true; 
-            if (startRow == 0 && startCol == 7) blackRookKing = true;  
+    else if(pieceName == Name::Rook){
+        if(pieceColor == Color::White){
+            if(startRow == 7) {
+                if(startCol == 0) castlingFlags.whiteRookQueen = true;
+                else if(startCol == 7) castlingFlags.whiteRookKing = true;
+            }
+        } else {
+            if(startRow == 0) { 
+                if(startCol == 0) castlingFlags.blackRookQueen = true;
+                else if(startCol == 7) castlingFlags.blackRookKing = true;
+            }
         }
     }
 }   //
