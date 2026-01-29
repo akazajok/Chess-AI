@@ -85,14 +85,16 @@ void Board::Execute_Move(int startRow, int startCol, int destRow, int destCol)
     if (!Can_Move(startRow, startCol, destRow, destCol))
         return;
     
-    //Track Movement trước mỗi nước đi
-    TrackPieceMovement(startRow, startCol);
     Piece* piece=Get_Piece_At(startRow, startCol);
-    //Kiểm nước đặc biệt
+    
+    //Kiểm nước đặc biệt TRƯỚC KHI track movement
     if (SpecialMove(startRow, startCol, destRow, destCol)){
         ExecuteSpecialMove(startRow, startCol, destRow, destCol);
         return;
     }
+    
+    TrackPieceMovement(startRow, startCol);
+    
     //Rồi đi như bth
     Update_Position(startRow, startCol, destRow, destCol);
 }
@@ -123,6 +125,8 @@ void Board::ExecuteSpecialMove(int startRow, int startCol, int destRow, int dest
 //=======================Castling Func=======================//
 bool Board::IsCastlingMove(int startRow, int startCol, int destRow, int destCol){
     Piece* piece = Get_Piece_At(startRow,startCol);
+
+    if (!piece) return false;
     if (piece->Get_Name() == Name::King && //Nếu start là vua và sang ngang 2 ô
         destRow == startRow &&
         abs(destCol-startCol)==2)
@@ -198,16 +202,25 @@ void Board::ParseCastlingRights(const std::string & rights){
     //parse kí hiệu trong fen
     for (char c :rights){
         switch(c){
-            case 'K': whiteRookKing=whiteKing=false; break;
-            case 'Q': whiteRookQueen=whiteKing=false; break;
-            case 'k': blackRookKing=blackKing=false; break;
-            case 'q': blackRookQueen=blackKing=false; break;
+            case 'K': whiteRookKing=false; break;
+            case 'Q': whiteRookQueen=false; break;
+            case 'k': blackRookKing=false; break;
+            case 'q': blackRookQueen=false; break;
+            case '-': break; 
         }
     }
+    if (rights.find('K') != std::string::npos || rights.find('Q') != std::string::npos)
+        whiteKing = false; // White King chưa di chuyển
+    if (rights.find('k') != std::string::npos || rights.find('q') != std::string::npos)
+        blackKing = false;
 }
 
 void Board::TrackPieceMovement(int startRow, int startCol){
     Piece*piece=Get_Piece_At(startRow,startCol);
+    
+    // THÊM NULL CHECK
+    if (!piece) return;
+    
     if(piece->Get_Name()==Name::King){
         if(piece->Get_Color()==Color::White) whiteKing=true;//true = vua đã di chuyển
         else blackKing=true;
