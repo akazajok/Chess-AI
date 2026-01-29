@@ -10,5 +10,5 @@ bool Queen::Is_Valid_Move(int destRow, int destCol, const Board &grid)
         return false;
 
     // Nếu đúng hướng, gọi hàm check vật cản
-    return Is_Path_Clear(destRow, destCol, grid);
+    return true;
 }

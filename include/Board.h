@@ -8,6 +8,8 @@
 #include <string>
 #include <memory>
 #include <sstream>
+#include <cstdlib> // hàm abs()
+#include <utility> // pair
 
 #include "../include/Piece.h"
 
@@ -30,15 +32,22 @@ private:
     int fullmoveNumber;          // Số lượt đi của ván đấu
 
 public:
+    int rowKingBlack, colKingBlack; // vị trí quân vua phe đen
+    int rowKingWhite, colKingWhite; // vị trí quân vua phe trắng
+
     // hàm khởi tạo bàn cờ theo yêu cầu ( nhập dữ liệu chữ )
     void Set_Up_Board(std::string &FEN);
     void Display(); // Hàm kiểm tra
-    // Hàm kiểm tra quân cờ di chuyển có đúng luật không
+    // Hàm kiểm tra ngoại lệ && đúng luật
     bool Can_Move(int startRow, int startCol, int destRow, int destCol);
     // Hàm di chuyển quân cờ
     void Update_Position(int startRow, int startCol, int destRow, int destCol);
-    // Hàm thực thi lệnh kiểm tra và di chuyển
+    // Thực thi di chuyển quân cờ
     void Execute_Move(int startRow, int startCol, int destRow, int destCol);
+    // Lấy quân cờ chặn đường
+    Piece *Get_Piece_On_Path(int startRow, int startCol, int destRow, int destCol);
+    // Hàm kiểm tra vua có bị chiếu tướng không ?
+    bool Is_King_In_Check(int rowKing, int colKing, Color color);
     // Hàm lấy dữ liệu quân cờ
     Piece *Get_Piece_At(int row, int col) const
     {

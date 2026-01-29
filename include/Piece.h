@@ -40,8 +40,6 @@ public:
     void Set_Position(int row, int col);
     // Hàm thuần ảo: Ép các quân cờ con (Xe, Tượng...) phải tự định nghĩa cách đi riêng
     virtual bool Is_Valid_Move(int destRow, int destCol, const Board &grid) = 0;
-    // Kiểm tra đường đi có bị chặn hay không
-    bool Is_Path_Clear(int destRow, int destCol, const Board &grid);
 };
 
 #endif

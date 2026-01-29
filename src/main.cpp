@@ -6,16 +6,33 @@ using namespace std;
 
 int main()
 {
-    Board chessGame;
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+    freopen("src/main.inp", "r", stdin);
+    freopen("src/main.out", "w", stdout);
 
-    string testLayout = "8/8/8/8/8/8/3N4/8 w - - 0 1";
+    int cnt = 1;
+    string testLayout;
+    while (getline(cin, testLayout))
+    {
+        if (testLayout.empty())
+            continue;
 
-    chessGame.Set_Up_Board(testLayout);
+        Board chessGame;
 
-    chessGame.Display();
-    chessGame.Execute_Move(6, 3, 4, 4);
-    chessGame.Display();
-    cout << "\nTest thanh cong!" << endl;
+        chessGame.Set_Up_Board(testLayout);
+        // chessGame.Display();
 
+        bool isWhiteInCheck = chessGame.Is_King_In_Check(chessGame.rowKingWhite, chessGame.colKingWhite, Color::White);
+        bool isBlackInCheck = chessGame.Is_King_In_Check(chessGame.rowKingBlack, chessGame.colKingBlack, Color::Black);
+
+        cout << "Test case :" << " " << cnt << '\n';
+        cout << testLayout << '\n';
+        cout << "White King in check: " << isWhiteInCheck << '\n';
+        cout << "Black King in check: " << isBlackInCheck << '\n'
+             << '\n';
+        cnt++;
+    }
     return 0;
 }
