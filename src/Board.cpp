@@ -183,25 +183,19 @@ void Board::ParseCastlingRights(const std::string & rights){
     //parse kí hiệu trong fen - tối ưu logic
     for (char c : rights){
         switch(c){
-            case 'K': castlingFlags.whiteRookKing = castlingFlags.whiteKing = false; break;
-            case 'Q': castlingFlags.whiteRookQueen = castlingFlags.whiteKing = false; break;
-            case 'k': castlingFlags.blackRookKing = castlingFlags.blackKing = false; break;
-            case 'q': castlingFlags.blackRookQueen = castlingFlags.blackKing = false; break;
-            case '-': break; 
+            case 'K': whiteRookKing=whiteKing=false; break;
+            case 'Q': whiteRookQueen=whiteKing=false; break;
+            case 'k': blackRookKing=blackKing=false; break;
+            case 'q': blackRookQueen=blackKing=false; break;
         }
     }
 }
 
 void Board::TrackPieceMovement(int startRow, int startCol){
-    Piece* piece = Get_Piece_At(startRow, startCol);
-    if (!piece) return;
-    
-    Name pieceName = piece->Get_Name();
-    Color pieceColor = piece->Get_Color();
-    
-    if(pieceName == Name::King){
-        if(pieceColor == Color::White) castlingFlags.whiteKing = true;
-        else castlingFlags.blackKing = true;
+    Piece*piece=Get_Piece_At(startRow,startCol);
+    if(piece->Get_Name()==Name::King){
+        if(piece->Get_Color()==Color::White) whiteKing=true;//true = vua đã di chuyển
+        else blackKing=true;
     }
     else if(pieceName == Name::Rook){
         if(pieceColor == Color::White){
