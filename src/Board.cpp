@@ -104,7 +104,10 @@ bool Board::SpecialMove(int startRow, int startCol, int destRow, int destCol){
 
     if (IsCastlingMove(startRow,startCol,destRow,destCol))
         return true;
-    //Thêm Enpassant với promotion vào đây
+    
+    if (IsPromotion(startRow, startCol, destRow, destCol))
+        return true;
+    //Thêm Enpassant vào đây
     //
     //
     return false;
@@ -116,12 +119,64 @@ void Board::ExecuteSpecialMove(int startRow, int startCol, int destRow, int dest
         ExecuteCastling(startRow,startCol,destRow,destCol);
         return;
     }
-    //Placeholder cho enpassant với phong hậu
+    if (IsPromotion(startRow, startCol,destRow,destCol)){
+        ExecutePromotion(startRow,startCol,destRow,destCol);
+        return;
+    }
+    //Placeholder cho enpassant
     //
     //
 }
-//===========================================================//
+//=======================Promotion Func=======================//
+bool Board::IsPromotion(int startRow, int startCol, int destRow, int destCol){
+    Piece* piece = Get_Piece_At(startRow, startCol);
+        if (!piece || piece->Get_Name() != Name::Pawn) return false; //check xem có phải quân thuờng không
 
+        return (piece->Get_Color() == Color::White && destRow == 0) || //return true if này if nọ
+            (piece->Get_Color() == Color::Black && destRow == 7);
+}
+
+void Board::ExecutePromotion(int startRow, int startCol, int destRow, int destCol){
+    Piece* pawn = Get_Piece_At(startRow,startCol);
+    Color pawncolor = pawn->Get_Color();
+    //Update Position trước khi get promotion piece
+    Update_Position(startRow,startCol,destRow,destCol);
+
+    Name promotionpiece = GetPromotionChoice();
+
+    switch(promotionpiece){
+        case Name::Queen : 
+            grid[destRow][destCol] = std::make_unique<Queen>(pawncolor,destRow,destCol); //check user choice rồi tạo một pointer mới
+            break;
+        case Name::Rook :
+            grid[destRow][destCol] = std::make_unique<Rook>(pawncolor,destRow,destCol);
+            break;
+        case Name::Bishop:
+            grid[destRow][destCol] = std::make_unique<Bishop>(pawncolor,destRow,destCol);
+            break;
+        case Name::Knight:
+            grid[destRow][destCol] = std::make_unique<Knight>(pawncolor,destRow,destCol);
+            break;
+    }
+}
+
+Name Board::GetPromotionChoice(){
+    std::cout << "Phong Hậu! Chọn quân! Q/R/B/N"<<std::endl;
+    char choice;
+    std::cin >> choice;
+    choice = toupper(choice);
+
+    switch(choice) {
+        case 'Q': return Name::Queen;
+        case 'R': return Name::Rook;
+        case 'B': return Name::Bishop;
+        case 'N': return Name::Knight;
+        default:
+            std::cout<< "Sai Syntax, Auto Queen nha";
+            return Name::Queen;
+    }
+
+}    
 //=======================Castling Func=======================//
 bool Board::IsCastlingMove(int startRow, int startCol, int destRow, int destCol){
     Piece* piece = Get_Piece_At(startRow,startCol);

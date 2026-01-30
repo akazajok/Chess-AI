@@ -31,6 +31,10 @@ private:
     //==========SPECIAL MOVE LOL========//
     bool SpecialMove(int startRow, int startCol, int destRow, int destCol); //Check nước đặc biệt
     void ExecuteSpecialMove(int startRow, int startCol, int destRow, int destCol);//Như cái tên
+    //=========Promotion Helper=========//
+    bool IsPromotion(int startRow, int startCol, int destRow, int destCol);
+    void ExecutePromotion(int startRow, int startCol, int destRow, int destCol);
+    Name GetPromotionChoice(); // Prompt user input
     //=========Castling Tracker=========//
     struct CastlingFlags {
         bool whiteKing : 1;    
