@@ -46,8 +46,10 @@ public:
     void Execute_Move(int startRow, int startCol, int destRow, int destCol);
     // Lấy quân cờ chặn đường
     Piece *Get_Piece_On_Path(int startRow, int startCol, int destRow, int destCol);
-    // Hàm kiểm tra vua có bị chiếu tướng không ?
-    bool Is_King_In_Check(int rowKing, int colKing, Color color);
+    // Lấy quân cờ đang chiếu tướng
+    Piece *Get_Checking_Piece(int rowKing, int colKing, Color colorKing);
+    // Có thể thoát chiếu tướng không
+    bool Can_Escape_Check(int rowKing, int colKing, Color colorKing);
     // Hàm lấy dữ liệu quân cờ
     Piece *Get_Piece_At(int row, int col) const
     {
