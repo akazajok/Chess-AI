@@ -10,6 +10,7 @@
 #include <sstream>
 #include <cstdlib> // hàm abs()
 #include <utility> // pair
+#include <cmath>   // lấy phần dư kiểu float, double
 
 #include "../include/Piece.h"
 
@@ -32,6 +33,7 @@ private:
     int fullmoveNumber;          // Số lượt đi của ván đấu
 
 public:
+    int cntCheck = 0;               // bao nhiêu quân đang chiếu tướng
     int rowKingBlack, colKingBlack; // vị trí quân vua phe đen
     int rowKingWhite, colKingWhite; // vị trí quân vua phe trắng
 

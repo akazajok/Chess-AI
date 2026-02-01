@@ -37,7 +37,7 @@ public:
     Name Get_Name() const;                    // Hàm xác định quân gì
     Color Get_Color() const;                  // Hàm lấy màu quân cờ
     std::pair<int, int> Get_Position() const; // Hàm lấy tọa độ quân cờ
-    void Set_Position(int row, int col);
+    void Set_Position(int row, int col);      // Hàm sửa tọa độ quân cờ
     // Hàm thuần ảo: Ép các quân cờ con (Xe, Tượng...) phải tự định nghĩa cách đi riêng
     virtual bool Is_Valid_Move(int destRow, int destCol, const Board &grid) = 0;
 };
