@@ -148,6 +148,12 @@ Piece *Board::Get_Piece_On_Path(int startRow, int startCol, int destRow, int des
 
 Piece *Board::Get_Checking_Piece(int rowKing, int colKing, Color colorKing)
 {
+    bool checkNull = false;
+    if (grid[rowKing][colKing] == nullptr)
+    {
+        checkNull = true;
+        grid[rowKing][colKing] = std::make_unique<Pawn>(colorKing, rowKing, colKing);
+    }
     cntCheck = 0;                                  // bao nhiêu quân đang chiếu tướng
     int checkRow = 0, checkCol = 0;                // kiểm tra tọa độ
     Piece *pieceCheck = nullptr, *piece = nullptr; // quân cờ có thể chiếu tướng
@@ -192,7 +198,11 @@ Piece *Board::Get_Checking_Piece(int rowKing, int colKing, Color colorKing)
             pieceCheck = piece;
         }
         if (cntCheck > 1)
+        {
+            if (checkNull)
+                grid[rowKing][colKing] = nullptr;
             return pieceCheck;
+        }
     }
     // Lấy tọa độ theo đường đi thẳng, ngang của quân địch ( Hậu, Vua, Xe )
     // Lấy theo đường thẳng ( trên xuống dưới ), rồi theo ngang ( trái sang phải )
@@ -223,7 +233,11 @@ Piece *Board::Get_Checking_Piece(int rowKing, int colKing, Color colorKing)
             pieceCheck = piece;
         }
         if (cntCheck > 1)
+        {
+            if (checkNull)
+                grid[rowKing][colKing] = nullptr;
             return pieceCheck;
+        }
     }
     // Lấy tọa độ theo đường đi chữ L ( Quân mã )
     // Lấy theo chiều kim đồng hồ ( từ trái sang phải, trên xuống dưới )
@@ -249,8 +263,14 @@ Piece *Board::Get_Checking_Piece(int rowKing, int colKing, Color colorKing)
             pieceCheck = piece;
         }
         if (cntCheck > 1)
+        {
+            if (checkNull)
+                grid[rowKing][colKing] = nullptr;
             return pieceCheck;
+        }
     }
+    if (checkNull)
+        grid[rowKing][colKing] = nullptr;
     return pieceCheck;
 }
 
@@ -284,17 +304,13 @@ bool Board::Can_Escape_Check(int rowKing, int colKing, Color colorKing)
     int stepCol = (posCheck.second == colKing) ? 0 : (colKing > posCheck.second) ? 1
                                                                                  : -1;
     int currR = posCheck.first, currC = posCheck.second;
-    // Chạy vòng lặp kiểm tra các ô di chuyển
+    // Chạy vòng lặp kiểm tra các ô di chuyển ( ăn quân địch || chặn đường để thoát chiếu bí)
     while (currR != rowKing || currC != colKing)
     {
         Piece *piece = Get_Checking_Piece(currR, currC, pieceCheck->Get_Color());
-        if (piece)
-        {
-            std::pair<int, int> pos = piece->Get_Position();
-            Update_Position(pos.first, pos.second, currR, currC);
-            if (!Get_Checking_Piece(rowKing, colKing, colorKing))
-                return true;
-        }
+        if (piece) // quân cờ có thể ăn địch đang chiếu || chặn đường
+            return true;
+
         currR += stepRow;
         currC += stepCol;
     }
