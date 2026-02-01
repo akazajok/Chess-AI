@@ -12,6 +12,9 @@ void Board::Set_Up_Board(std::string &FEN)
     std::string piecePlacement;
     fen >> piecePlacement >> sideToMove >> castlingRights >> enPassantTarget >> halfmoveClock >> fullmoveNumber;
 
+    // Parse CastlingRights//
+    ParseCastlingRights(castlingRights);
+
     using PieceCreator = std::function<std::unique_ptr<Piece>(Color, int, int)>;
     std::map<char, PieceCreator> pieceTable = {
         {'p', [](Color color, int row, int col)
@@ -102,10 +105,239 @@ bool Board::Can_Move(int startRow, int startCol, int destRow, int destCol)
 // Thực thi di chuyển quân cờ
 void Board::Execute_Move(int startRow, int startCol, int destRow, int destCol)
 {
-    // Kiểm tra đi có đúng luật && các điều kiện ngoại lệ
-    if (Can_Move(startRow, startCol, destRow, destCol))
-        Update_Position(startRow, startCol, destRow, destCol);
+    if (!Can_Move(startRow, startCol, destRow, destCol))
+        return;
+
+    Piece *piece = Get_Piece_At(startRow, startCol);
+
+    // Kiểm nước đặc biệt TRƯỚC KHI track movement
+    if (SpecialMove(startRow, startCol, destRow, destCol))
+    {
+        ExecuteSpecialMove(startRow, startCol, destRow, destCol);
+        return;
+    }
+
+    TrackPieceMovement(startRow, startCol);
+
+    // Rồi đi như bth
+    Update_Position(startRow, startCol, destRow, destCol);
 }
+//======================SPECIAL SECTION============================//
+bool Board::SpecialMove(int startRow, int startCol, int destRow, int destCol)
+{
+    Piece *piece = Get_Piece_At(startRow, startCol);
+
+    if (IsCastlingMove(startRow, startCol, destRow, destCol))
+        return true;
+
+    if (IsPromotion(startRow, startCol, destRow, destCol))
+        return true;
+    // Thêm Enpassant vào đây
+    //
+    //
+    return false;
+}
+void Board::ExecuteSpecialMove(int startRow, int startCol, int destRow, int destCol)
+{
+
+    // Bước xử lí phù hợp
+    if (IsCastlingMove(startRow, startCol, destRow, destCol))
+    {
+        ExecuteCastling(startRow, startCol, destRow, destCol);
+        return;
+    }
+    if (IsPromotion(startRow, startCol, destRow, destCol))
+    {
+        ExecutePromotion(startRow, startCol, destRow, destCol);
+        return;
+    }
+    // Placeholder cho enpassant
+    //
+    //
+}
+//=======================Promotion Func=======================//
+bool Board::IsPromotion(int startRow, int startCol, int destRow, int destCol)
+{
+    Piece *piece = Get_Piece_At(startRow, startCol);
+    if (!piece || piece->Get_Name() != Name::Pawn)
+        return false; // check xem có phải quân thuờng không
+
+    return (piece->Get_Color() == Color::White && destRow == 0) || // return true if này if nọ
+           (piece->Get_Color() == Color::Black && destRow == 7);
+}
+
+void Board::ExecutePromotion(int startRow, int startCol, int destRow, int destCol)
+{
+    Piece *pawn = Get_Piece_At(startRow, startCol);
+    Color pawncolor = pawn->Get_Color();
+    // Update Position trước khi get promotion piece
+    Update_Position(startRow, startCol, destRow, destCol);
+
+    Name promotionpiece = GetPromotionChoice();
+
+    switch (promotionpiece)
+    {
+    case Name::Queen:
+        grid[destRow][destCol] = std::make_unique<Queen>(pawncolor, destRow, destCol); // check user choice rồi tạo một pointer mới
+        break;
+    case Name::Rook:
+        grid[destRow][destCol] = std::make_unique<Rook>(pawncolor, destRow, destCol);
+        break;
+    case Name::Bishop:
+        grid[destRow][destCol] = std::make_unique<Bishop>(pawncolor, destRow, destCol);
+        break;
+    case Name::Knight:
+        grid[destRow][destCol] = std::make_unique<Knight>(pawncolor, destRow, destCol);
+        break;
+    }
+}
+
+Name Board::GetPromotionChoice()
+{
+    std::cout << "Phong Hậu! Chọn quân! Q/R/B/N" << std::endl;
+    char choice;
+    std::cin >> choice;
+    choice = toupper(choice);
+
+    switch (choice)
+    {
+    case 'Q':
+        return Name::Queen;
+    case 'R':
+        return Name::Rook;
+    case 'B':
+        return Name::Bishop;
+    case 'N':
+        return Name::Knight;
+    default:
+        std::cout << "Sai Syntax, Auto Queen nha";
+        return Name::Queen;
+    }
+}
+//=======================Castling Func=======================//
+bool Board::IsCastlingMove(int startRow, int startCol, int destRow, int destCol)
+{
+    Piece *piece = Get_Piece_At(startRow, startCol);
+
+    if (!piece)
+        return false;
+    if (piece->Get_Name() == Name::King && // Nếu start là vua và sang ngang 2 ô
+        destRow == startRow &&
+        abs(destCol - startCol) == 2)
+
+    {
+        bool isKingside = (destCol > startCol);
+        return CanCastle(piece->Get_Color(), isKingside);
+    }
+    return false;
+}
+bool Board::CanCastle(Color color, bool kingside)
+{
+    if ((color == Color::White && castlingFlags.whiteKing) ||
+        (color == Color::Black && castlingFlags.blackKing))
+        return false;
+
+    bool rookMoved = (color == Color::White) ? (kingside ? castlingFlags.whiteRookKing : castlingFlags.whiteRookQueen) : (kingside ? castlingFlags.blackRookKing : castlingFlags.blackRookQueen);
+    if (rookMoved)
+        return false;
+
+    int row = (color == Color::White) ? 7 : 0;
+    return kingside ? (!Get_Piece_At(row, 5) && !Get_Piece_At(row, 6)) : (!Get_Piece_At(row, 1) && !Get_Piece_At(row, 2) && !Get_Piece_At(row, 3));
+}
+void Board::UpdateCastlingStat(Color color)
+{
+    if (color == Color::White)
+    {
+        castlingFlags.whiteKing = true;
+        castlingFlags.whiteRookKing = true;
+        castlingFlags.whiteRookQueen = true;
+    }
+    else
+    {
+        castlingFlags.blackKing = true;
+        castlingFlags.blackRookKing = true;
+        castlingFlags.blackRookQueen = true;
+    }
+}
+
+void Board::ExecuteCastling(int startRow, int startCol, int destRow, int destCol)
+{
+    bool isKingside = (destCol > startCol);
+
+    Update_Position(startRow, startCol, destRow, destCol); // Move King
+
+    int rookStartCol = isKingside ? 7 : 0;
+    int rookDestCol = isKingside ? destCol - 1 : destCol + 1;
+    Update_Position(destRow, rookStartCol, destRow, rookDestCol); // Move Rook
+
+    UpdateCastlingStat(Get_Piece_At(destRow, destCol)->Get_Color());
+}
+
+void Board::ParseCastlingRights(const std::string &rights)
+{
+    // reset về true(để không nhập thành được)
+    castlingFlags = {true, true, true, true, true, true};
+
+    // parse kí hiệu trong fen - tối ưu logic
+    for (char c : rights)
+    {
+        switch (c)
+        {
+        case 'K':
+            castlingFlags.whiteRookKing = castlingFlags.whiteKing = false;
+            break;
+        case 'Q':
+            castlingFlags.whiteRookQueen = castlingFlags.whiteKing = false;
+            break;
+        case 'k':
+            castlingFlags.blackRookKing = castlingFlags.blackKing = false;
+            break;
+        case 'q':
+            castlingFlags.blackRookQueen = castlingFlags.blackKing = false;
+            break;
+        }
+    }
+}
+
+void Board::TrackPieceMovement(int startRow, int startCol)
+{
+    Piece *piece = Get_Piece_At(startRow, startCol);
+    // Thêm null check
+    if (!piece)
+        return;
+    if (piece->Get_Name() == Name::King)
+    {
+        if (piece->Get_Color() == Color::White)
+            castlingFlags.whiteKing = true; // true = vua đã di chuyển
+        else
+            castlingFlags.blackKing = true;
+    }
+    else if (piece->Get_Name() == Name::Rook)
+    {
+        if (piece->Get_Color() == Color::White)
+        {
+            if (startRow == 7)
+            {
+                if (startCol == 0)
+                    castlingFlags.whiteRookQueen = true;
+                else if (startCol == 7)
+                    castlingFlags.whiteRookKing = true;
+            }
+        }
+        else
+        {
+            if (startRow == 0)
+            {
+                if (startCol == 0)
+                    castlingFlags.blackRookQueen = true;
+                else if (startCol == 7)
+                    castlingFlags.blackRookKing = true;
+            }
+        }
+    }
+} //
+
+//=======================================================//
 
 // Hàm cập nhật di chuyển quân cờ, ăn quân địch
 void Board::Update_Position(int startRow, int startCol, int destRow, int destCol)

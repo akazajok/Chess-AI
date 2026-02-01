@@ -27,10 +27,33 @@ class Board
 private:
     BoardGrid grid;
     char sideToMove;             // Ai là người đi tiếp theo?
-    std::string castlingRights;  // Quyền nhập thành ( vua, xe chưa di chuyển )
-    std::string enPassantTarget; // Bắt tốt qua đường
+    std::string castlingRights;      // Quyền nhập thành ( vua, xe chưa di chuyển )
+    std::string enPassantTarget;     // Bắt tốt qua đường
     int halfmoveClock;           // Luật 50 nước
-    int fullmoveNumber;          // Số lượt đi của ván đấu
+    int fullmoveNumber;         // Số lượt đi của ván đấu
+    //==========SPECIAL MOVE LOL========//
+    bool SpecialMove(int startRow, int startCol, int destRow, int destCol); //Check nước đặc biệt
+    void ExecuteSpecialMove(int startRow, int startCol, int destRow, int destCol);//Như cái tên
+    //=========Promotion Helper=========//
+    bool IsPromotion(int startRow, int startCol, int destRow, int destCol);
+    void ExecutePromotion(int startRow, int startCol, int destRow, int destCol);
+    Name GetPromotionChoice(); // Prompt user input
+    //=========Castling Tracker=========//
+    struct CastlingFlags {
+        bool whiteKing : 1;    
+        bool blackKing : 1;      
+        bool whiteRookKing : 1;  
+        bool whiteRookQueen : 1; 
+        bool blackRookKing : 1;  
+        bool blackRookQueen : 1;
+    } castlingFlags = {false}; 
+    //=========Castling Helper==========//
+    bool IsCastlingMove(int startRow, int startCol, int destRow, int destCol);
+    void ExecuteCastling(int startRow, int startCol, int destRow, int destCol);
+    bool CanCastle(Color color, bool kingside);
+    void UpdateCastlingStat(Color color);
+    void ParseCastlingRights(const std::string& rights);//Giải mã FEN của Castling
+    void TrackPieceMovement(int startRow, int startCol);//Track đã di chuyển hay chưa, có thể recycle
 
 public:
     int cntCheck = 0;               // bao nhiêu quân đang chiếu tướng
