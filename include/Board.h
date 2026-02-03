@@ -31,6 +31,19 @@ private:
     std::string enPassantTarget;     // Bắt tốt qua đường
     int halfmoveClock;           // Luật 50 nước
     int fullmoveNumber;         // Số lượt đi của ván đấu
+    //==========Move History============//
+    struct CastlingFlags;
+    struct MoveRecord{
+        int startRow, startCol, destRow,destCol;
+        std::unique_ptr<Piece> capturedPiece;
+        CastlingFlags* previousCastlingState;
+        bool WasSpecialMove;
+        std::string FEN;
+
+    };
+    std::vector<MoveRecord> moveHistory;
+    int currentIndex = -1;
+
     //==========SPECIAL MOVE LOL========//
     bool SpecialMove(int startRow, int startCol, int destRow, int destCol); //Check nước đặc biệt
     void ExecuteSpecialMove(int startRow, int startCol, int destRow, int destCol);//Như cái tên
@@ -82,6 +95,12 @@ public:
             return nullptr;
         return grid[row][col].get();
     }
+    //=====Rollback và history=====//
+    void SaveMoveToHistory(int startRow, int startCol, int destRow, int destCol);
+    bool Undo(); //check trạng thái redo hay undo
+    bool Redo();
+    void ShowMoveHistory();
+    std::string GetFen(int startRow, int startCol, int destRow, int destCol);
 };
 
 #endif
