@@ -108,6 +108,9 @@ void Board::Execute_Move(int startRow, int startCol, int destRow, int destCol)
     if (!Can_Move(startRow, startCol, destRow, destCol))
         return;
 
+    //Save move vào history//
+    SaveMoveToHistory(startRow,startCol,destRow,destCol);
+
     Piece *piece = Get_Piece_At(startRow, startCol);
 
     // Kiểm nước đặc biệt TRƯỚC KHI track movement
@@ -121,6 +124,44 @@ void Board::Execute_Move(int startRow, int startCol, int destRow, int destCol)
 
     // Rồi đi như bth
     Update_Position(startRow, startCol, destRow, destCol);
+}
+//======================HISTORY SECTION============================//
+void Board::SaveMoveToHistory(int startRow, int startCol, int destRow, int destCol){
+    MoveRecord record;
+    record.startRow = startRow; record.startCol=startCol;
+    record.destRow = destRow; record.destCol = destCol;
+    record.WasSpecialMove = SpecialMove(startRow,startCol,destRow,destCol);
+    record.capturedPiece = std::move(grid[destRow][destCol]);//move pointer từ grid về history
+    record.FEN = GetFen(startRow,startCol,destRow,destCol);
+    record.previousCastlingState = castlingFlags;
+    //delete chronological order của vector history sau index hiện tại nếu redo //
+    if (currentIndex < (int)moveHistory.size()-1){
+        moveHistory.erase(moveHistory.begin() + currentIndex + 1, moveHistory.end());
+    }
+
+    moveHistory.push_back(std::move(record));
+    currentIndex++;//đẩy vị trí hiện tại vào cuối ds và +index
+}
+
+bool Board::Undo(){
+    if (currentIndex<0) return false;
+
+    MoveRecord& lastmove = moveHistory[currentIndex];
+    //Quay về chỗ cũ
+    Update_Position(lastmove.destRow, lastmove.destCol, lastmove.startRow,lastmove.startCol);
+    //quay quân ăn về vị trí cũ nếu có
+    if (lastmove.capturedPiece){
+        grid[lastmove.destRow][lastmove.destCol]= std::move(lastmove.capturedPiece);    
+    }
+    //Flags castling back nếu có.
+    castlingFlags = lastmove.previousCastlingState;
+    //special move
+    if (lastmove.WasSpecialMove){}
+        //holder//
+    
+    currentIndex--;
+    return true;
+
 }
 //======================SPECIAL SECTION============================//
 bool Board::SpecialMove(int startRow, int startCol, int destRow, int destCol)
