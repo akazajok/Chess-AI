@@ -31,18 +31,6 @@ private:
     std::string enPassantTarget;     // Bắt tốt qua đường
     int halfmoveClock;           // Luật 50 nước
     int fullmoveNumber;         // Số lượt đi của ván đấu
-    //==========Move History============//
-    struct CastlingFlags;
-    struct MoveRecord{
-        int startRow, startCol, destRow,destCol;
-        std::unique_ptr<Piece> capturedPiece;
-        CastlingFlags* previousCastlingState;
-        bool WasSpecialMove;
-        std::string FEN;
-
-    };
-    std::vector<MoveRecord> moveHistory;
-    int currentIndex = -1;
 
     //==========SPECIAL MOVE LOL========//
     bool SpecialMove(int startRow, int startCol, int destRow, int destCol); //Check nước đặc biệt
@@ -67,7 +55,18 @@ private:
     void UpdateCastlingStat(Color color);
     void ParseCastlingRights(const std::string& rights);//Giải mã FEN của Castling
     void TrackPieceMovement(int startRow, int startCol);//Track đã di chuyển hay chưa, có thể recycle
+    //==========Move History============//
+    struct MoveRecord{
+        int startRow, startCol, destRow,destCol;
+        std::unique_ptr<Piece> capturedPiece;
+        CastlingFlags previousCastlingState;
+        bool WasSpecialMove;
+        std::string FEN;
 
+    };
+    std::vector<MoveRecord> moveHistory;
+    int currentIndex = -1;
+    
 public:
     int cntCheck = 0;               // bao nhiêu quân đang chiếu tướng
     int rowKingBlack, colKingBlack; // vị trí quân vua phe đen
