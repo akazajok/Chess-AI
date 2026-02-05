@@ -28,25 +28,32 @@ int main()
         cout << "Test case :" << " " << cnt << " ";
         cout << testLayout << '\n';
 
-        Piece *pieceCheckWhite = chessGame.Get_Checking_Piece(chessGame.rowKingWhite, chessGame.colKingWhite, Color::White);
+        if (chessGame.rowKingWhite >= 0 && chessGame.rowKingWhite <= 7)
+        {
+            Piece *pieceCheckWhite = chessGame.Get_Checking_Piece(chessGame.rowKingWhite, chessGame.colKingWhite, Color::White);
 
-        cout << "White King in check: " << pieceCheckWhite << '\n';
-        cout << "Số quân đang chiếu vua trắng : " << chessGame.cntCheck << '\n';
+            cout << "White King in check: " << pieceCheckWhite << '\n';
+            cout << "Số quân đang chiếu vua trắng : " << chessGame.cntCheck << '\n';
 
-        bool isCheckMateWhite = chessGame.Can_Escape_Check(chessGame.rowKingWhite, chessGame.colKingWhite, Color::White);
+            bool isCheckMateWhite = pieceCheckWhite != nullptr ? chessGame.Can_Escape_Check(chessGame.rowKingWhite, chessGame.colKingWhite, Color::White) : 1;
 
-        cout << "Có thể thoát chiếu tướng không: " << " " << isCheckMateWhite << '\n';
+            cout << "Có thể thoát chiếu tướng không: " << " " << isCheckMateWhite << '\n';
+        }
 
-        // Piece *pieceCheckBlack = chessGame.Get_Checking_Piece(chessGame.rowKingBlack, chessGame.colKingBlack, Color::Black);
+        if (chessGame.rowKingBlack >= 0 && chessGame.rowKingBlack <= 7)
+        {
 
-        // cout << "Black King in check: " << pieceCheckBlack << '\n';
-        // cout << "Số quân đang chiếu vua đen : " << chessGame.cntCheck << '\n';
+            Piece *pieceCheckBlack = chessGame.Get_Checking_Piece(chessGame.rowKingBlack, chessGame.colKingBlack, Color::Black);
 
-        // bool isCheckMateBlack = chessGame.Can_Escape_Check(chessGame.rowKingBlack, chessGame.colKingBlack, Color::Black);
+            cout << "Black King in check: " << pieceCheckBlack << '\n';
+            cout << "Số quân đang chiếu vua đen : " << chessGame.cntCheck << '\n';
 
-        // cout << "Có thể thoát chiếu tướng không: " << " " << isCheckMateBlack << '\n';
+            bool isCheckMateBlack = pieceCheckBlack != nullptr ? chessGame.Can_Escape_Check(chessGame.rowKingBlack, chessGame.colKingBlack, Color::Black) : 1;
 
-        // cout << '\n';
+            cout << "Có thể thoát chiếu tướng không: " << " " << isCheckMateBlack << '\n';
+        }
+
+        cout << '\n';
 
         cnt++;
     }

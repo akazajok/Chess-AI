@@ -65,7 +65,7 @@ void Board::Set_Up_Board(std::string &FEN)
     }
 }
 // Hàm kiểm tra các quân cờ có được di chuyển hay không ( ngoại lệ && đúng luật )
-bool Board::Can_Move(int startRow, int startCol, int destRow, int destCol)
+bool Board::Can_Move(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
     // kiểm tra biên
     if (destRow < 0 || destRow > 7 || destCol < 0 || destCol > 7)
@@ -103,7 +103,7 @@ bool Board::Can_Move(int startRow, int startCol, int destRow, int destCol)
 }
 
 // Thực thi di chuyển quân cờ
-void Board::Execute_Move(int startRow, int startCol, int destRow, int destCol)
+void Board::Execute_Move(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
     if (!Can_Move(startRow, startCol, destRow, destCol))
         return;
@@ -123,7 +123,7 @@ void Board::Execute_Move(int startRow, int startCol, int destRow, int destCol)
     Update_Position(startRow, startCol, destRow, destCol);
 }
 //======================SPECIAL SECTION============================//
-bool Board::SpecialMove(int startRow, int startCol, int destRow, int destCol)
+bool Board::SpecialMove(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
     Piece *piece = Get_Piece_At(startRow, startCol);
 
@@ -137,7 +137,7 @@ bool Board::SpecialMove(int startRow, int startCol, int destRow, int destCol)
     //
     return false;
 }
-void Board::ExecuteSpecialMove(int startRow, int startCol, int destRow, int destCol)
+void Board::ExecuteSpecialMove(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
 
     // Bước xử lí phù hợp
@@ -156,7 +156,7 @@ void Board::ExecuteSpecialMove(int startRow, int startCol, int destRow, int dest
     //
 }
 //=======================Promotion Func=======================//
-bool Board::IsPromotion(int startRow, int startCol, int destRow, int destCol)
+bool Board::IsPromotion(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
     Piece *piece = Get_Piece_At(startRow, startCol);
     if (!piece || piece->Get_Name() != Name::Pawn)
@@ -166,7 +166,7 @@ bool Board::IsPromotion(int startRow, int startCol, int destRow, int destCol)
            (piece->Get_Color() == Color::Black && destRow == 7);
 }
 
-void Board::ExecutePromotion(int startRow, int startCol, int destRow, int destCol)
+void Board::ExecutePromotion(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
     Piece *pawn = Get_Piece_At(startRow, startCol);
     Color pawncolor = pawn->Get_Color();
@@ -215,7 +215,7 @@ Name Board::GetPromotionChoice()
     }
 }
 //=======================Castling Func=======================//
-bool Board::IsCastlingMove(int startRow, int startCol, int destRow, int destCol)
+bool Board::IsCastlingMove(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
     Piece *piece = Get_Piece_At(startRow, startCol);
 
@@ -260,7 +260,7 @@ void Board::UpdateCastlingStat(Color color)
     }
 }
 
-void Board::ExecuteCastling(int startRow, int startCol, int destRow, int destCol)
+void Board::ExecuteCastling(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
     bool isKingside = (destCol > startCol);
 
@@ -340,7 +340,7 @@ void Board::TrackPieceMovement(int startRow, int startCol)
 //=======================================================//
 
 // Hàm cập nhật di chuyển quân cờ, ăn quân địch
-void Board::Update_Position(int startRow, int startCol, int destRow, int destCol)
+void Board::Update_Position(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
     // cập nhật quân cờ vào vị trí đích và xóa vị trí cũ
     grid[destRow][destCol] = std::move(grid[startRow][startCol]);
@@ -358,7 +358,7 @@ void Board::Update_Position(int startRow, int startCol, int destRow, int destCol
     }
 }
 
-Piece *Board::Get_Piece_On_Path(int startRow, int startCol, int destRow, int destCol)
+Piece *Board::Get_Piece_On_Path(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
     // Xác định hướng di chuyển của xe hay tịnh
     int stepRow = (startRow == destRow) ? 0 : (destRow > startRow) ? 1
@@ -381,7 +381,7 @@ Piece *Board::Get_Piece_On_Path(int startRow, int startCol, int destRow, int des
     return nullptr;
 }
 
-Piece *Board::Get_Checking_Piece(int rowKing, int colKing, Color colorKing)
+Piece *Board::Get_Checking_Piece(const int &rowKing, const int &colKing, const Color &colorKing)
 {
     cntCheck = 0;                                  // bao nhiêu quân đang chiếu tướng
     int checkRow = 0, checkCol = 0;                // kiểm tra tọa độ
@@ -489,100 +489,74 @@ Piece *Board::Get_Checking_Piece(int rowKing, int colKing, Color colorKing)
 }
 
 // return 1 là có thể thoát chiếu tướng
-bool Board::Can_Escape_Check(int rowKing, int colKing, Color colorKing)
+bool Board::Can_Escape_Check(const int &rowKing, const int &colKing, const Color &colorKing)
 {
     int checkRow = 0, checkCol = 0;
 
     // Vua tự thoát chiếu
     static const int directionRowKing[] = {-1, -1, -1, 0, 0, 1, 1, 1};
     static const int directionColKing[] = {-1, 0, 1, -1, 1, -1, 0, 1};
-
+    Piece *pieceKing = Get_Piece_At(rowKing, colKing);
     for (int i = 0; i < 8; i++)
     {
+        // vua sẽ đi đến ô ( checkRow, CheckCol ) ;
         checkRow = rowKing + directionRowKing[i];
         checkCol = colKing + directionColKing[i];
 
-        if (Can_Move(rowKing, colKing, checkRow, checkCol))
-        {
-            // NHẤC - ĐẶT
-            std::unique_ptr<Piece> capturedPiece = std::move(grid[checkRow][checkCol]);
-            Update_Position(rowKing, colKing, checkRow, checkCol);
-
-            // KIỂM TRA
-            Piece *pieceCheck = Get_Checking_Piece(checkRow, checkCol, colorKing);
-            bool canEscape = (pieceCheck == nullptr);
-
-            // TRẢ - HOÀN TÁC
-            Update_Position(checkRow, checkCol, rowKing, colKing);
-            grid[checkRow][checkCol] = std::move(capturedPiece);
-
-            if (canEscape)
-                return true;
-        }
+        if (Is_Safe_Move(pieceKing, checkRow, checkCol, checkRow, checkCol, colorKing))
+            return true;
     }
-    // Ăn quân đang chiếu || Chặn đường quân chiếu
-    Piece *pieceCheck = Get_Checking_Piece(rowKing, colKing, colorKing);
-    std::pair<int, int> posCheck;
-    if (pieceCheck)
-        posCheck = pieceCheck->Get_Position();
 
+    // Ăn quân đang chiếu || Chặn đường quân chiếu
+    // Di chuyển thì có bị chiếu tướng nữa không ???
+
+    Piece *pieceCheck = Get_Checking_Piece(rowKing, colKing, colorKing);
+    std::pair<int, int> posCheck = pieceCheck->Get_Position();
+    // chiếu đôi thì không chạy được
     if (cntCheck > 1)
         return false;
-    // di chuyển từ quân chiếu tướng đến vua
+
+    if (pieceCheck->Get_Name() == Name::Knight)
+    {
+        // tìm quân có thể ăn quân mã ( đang chiếu tướng ) && ktra có còn bị chiếu tướng không ?
+        Piece *piece = Get_Checking_Piece(posCheck.first, posCheck.second, pieceCheck->Get_Color());
+        if (Is_Safe_Move(piece, posCheck.first, posCheck.second, rowKing, colKing, colorKing)) // Quân cờ ăn được quân mã đang chiếu tướng
+            return true;
+    }
     int stepRow = (posCheck.first == rowKing) ? 0 : (rowKing > posCheck.first) ? 1
                                                                                : -1;
     int stepCol = (posCheck.second == colKing) ? 0 : (colKing > posCheck.second) ? 1
                                                                                  : -1;
     int currR = posCheck.first, currC = posCheck.second;
-
-    if (pieceCheck->Get_Name() == Name::Knight)
-    {
-        Piece *piece = Get_Checking_Piece(currR, currC, pieceCheck->Get_Color());
-        if (piece) // quân cờ có thể ăn địch đang chiếu || chặn đường
-        {
-            std::pair<int, int> pos = piece->Get_Position();
-            if (Can_Move(pos.first, pos.second, currR, currC))
-            {
-                // NHẤC - ĐẶT
-                std::unique_ptr<Piece> capturedPiece = std::move(grid[currR][currC]);
-                Update_Position(pos.first, pos.second, currR, currC);
-
-                Piece *pieceCheck = Get_Checking_Piece(rowKing, colKing, colorKing);
-                bool canEscape = (pieceCheck == nullptr);
-
-                // TRẢ - HOÀN TÁC
-                Update_Position(currR, currC, pos.first, pos.second);
-                grid[currR][currC] = std::move(capturedPiece);
-
-                return canEscape;
-            }
-        }
-    }
     // Chạy vòng lặp kiểm tra các ô di chuyển ( ăn quân địch || chặn đường để thoát chiếu bí)
     while (currR != rowKing || currC != colKing)
     {
         Piece *piece = Get_Checking_Piece(currR, currC, pieceCheck->Get_Color());
-        if (piece) // quân cờ có thể ăn địch đang chiếu || chặn đường
-        {
-            std::pair<int, int> pos = piece->Get_Position();
-            if (Can_Move(pos.first, pos.second, currR, currC))
-            {
-                // NHẤC - ĐẶT
-                std::unique_ptr<Piece> capturedPiece = std::move(grid[currR][currC]);
-                Update_Position(pos.first, pos.second, currR, currC);
-
-                Piece *pieceCheck = Get_Checking_Piece(rowKing, colKing, colorKing);
-                bool canEscape = (pieceCheck == nullptr);
-
-                // TRẢ - HOÀN TÁC
-                Update_Position(currR, currC, pos.first, pos.second);
-                grid[currR][currC] = std::move(capturedPiece);
-
-                return canEscape;
-            }
-        }
+        if (Is_Safe_Move(piece, currR, currC, rowKing, colKing, colorKing)) // quân cờ có thể ăn địch đang chiếu || chặn đường
+            return true;
         currR += stepRow;
         currC += stepCol;
+    }
+    return false;
+}
+// return true là đi không bị chiếu tướng
+bool Board::Is_Safe_Move(const Piece *pieceCheck, const int &destRow, const int &destCol, const int &rowKing, const int &colKing, const Color &colorKing)
+{
+    std::pair<int, int> posCheck = pieceCheck->Get_Position();
+    if (Can_Move(posCheck.first, posCheck.second, destRow, destCol))
+    {
+        // NHẤC - ĐẶT
+        std::unique_ptr<Piece> capturedPiece = std::move(grid[destRow][destCol]);
+        Update_Position(posCheck.first, posCheck.second, destRow, destCol);
+
+        Piece *pieceCheck = Get_Checking_Piece(rowKing, colKing, colorKing);
+        bool canEscape = (pieceCheck == nullptr);
+
+        // TRẢ - HOÀN TÁC
+        Update_Position(destRow, destCol, posCheck.first, posCheck.second);
+        grid[destRow][destCol] = std::move(capturedPiece);
+
+        return canEscape;
     }
     return false;
 }

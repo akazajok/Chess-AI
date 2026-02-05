@@ -27,54 +27,57 @@ class Board
 private:
     BoardGrid grid;
     char sideToMove;             // Ai là người đi tiếp theo?
-    std::string castlingRights;      // Quyền nhập thành ( vua, xe chưa di chuyển )
-    std::string enPassantTarget;     // Bắt tốt qua đường
+    std::string castlingRights;  // Quyền nhập thành ( vua, xe chưa di chuyển )
+    std::string enPassantTarget; // Bắt tốt qua đường
     int halfmoveClock;           // Luật 50 nước
-    int fullmoveNumber;         // Số lượt đi của ván đấu
+    int fullmoveNumber;          // Số lượt đi của ván đấu
     //==========SPECIAL MOVE LOL========//
-    bool SpecialMove(int startRow, int startCol, int destRow, int destCol); //Check nước đặc biệt
-    void ExecuteSpecialMove(int startRow, int startCol, int destRow, int destCol);//Như cái tên
+    bool SpecialMove(const int &startRow, const int &startCol, const int &destRow, const int &destCol);        // Check nước đặc biệt
+    void ExecuteSpecialMove(const int &startRow, const int &startCol, const int &destRow, const int &destCol); // Như cái tên
     //=========Promotion Helper=========//
-    bool IsPromotion(int startRow, int startCol, int destRow, int destCol);
-    void ExecutePromotion(int startRow, int startCol, int destRow, int destCol);
+    bool IsPromotion(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
+    void ExecutePromotion(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
     Name GetPromotionChoice(); // Prompt user input
     //=========Castling Tracker=========//
-    struct CastlingFlags {
-        bool whiteKing : 1;    
-        bool blackKing : 1;      
-        bool whiteRookKing : 1;  
-        bool whiteRookQueen : 1; 
-        bool blackRookKing : 1;  
+    struct CastlingFlags
+    {
+        bool whiteKing : 1;
+        bool blackKing : 1;
+        bool whiteRookKing : 1;
+        bool whiteRookQueen : 1;
+        bool blackRookKing : 1;
         bool blackRookQueen : 1;
-    } castlingFlags = {false}; 
+    } castlingFlags = {false};
     //=========Castling Helper==========//
-    bool IsCastlingMove(int startRow, int startCol, int destRow, int destCol);
-    void ExecuteCastling(int startRow, int startCol, int destRow, int destCol);
+    bool IsCastlingMove(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
+    void ExecuteCastling(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
     bool CanCastle(Color color, bool kingside);
     void UpdateCastlingStat(Color color);
-    void ParseCastlingRights(const std::string& rights);//Giải mã FEN của Castling
-    void TrackPieceMovement(int startRow, int startCol);//Track đã di chuyển hay chưa, có thể recycle
+    void ParseCastlingRights(const std::string &rights); // Giải mã FEN của Castling
+    void TrackPieceMovement(int startRow, int startCol); // Track đã di chuyển hay chưa, có thể recycle
 
 public:
-    int cntCheck = 0;               // bao nhiêu quân đang chiếu tướng
-    int rowKingBlack, colKingBlack; // vị trí quân vua phe đen
-    int rowKingWhite, colKingWhite; // vị trí quân vua phe trắng
+    int cntCheck = 0;                         // bao nhiêu quân đang chiếu tướng
+    int rowKingBlack = -1, colKingBlack = -1; // vị trí quân vua phe đen
+    int rowKingWhite = -1, colKingWhite = -1; // vị trí quân vua phe trắng
 
     // hàm khởi tạo bàn cờ theo yêu cầu ( nhập dữ liệu chữ )
     void Set_Up_Board(std::string &FEN);
     void Display(); // Hàm kiểm tra
     // Hàm kiểm tra ngoại lệ && đúng luật
-    bool Can_Move(int startRow, int startCol, int destRow, int destCol);
+    bool Can_Move(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
     // Hàm di chuyển quân cờ
-    void Update_Position(int startRow, int startCol, int destRow, int destCol);
+    void Update_Position(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
     // Thực thi di chuyển quân cờ
-    void Execute_Move(int startRow, int startCol, int destRow, int destCol);
+    void Execute_Move(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
     // Lấy quân cờ chặn đường
-    Piece *Get_Piece_On_Path(int startRow, int startCol, int destRow, int destCol);
+    Piece *Get_Piece_On_Path(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
     // Lấy quân cờ đang chiếu tướng
-    Piece *Get_Checking_Piece(int rowKing, int colKing, Color colorKing);
+    Piece *Get_Checking_Piece(const int &rowKing, const int &colKing, const Color &colorKing);
     // Có thể thoát chiếu tướng không
-    bool Can_Escape_Check(int rowKing, int colKing, Color colorKing);
+    bool Can_Escape_Check(const int &rowKing, const int &colKing, const Color &colorKing);
+    // Di chuyển thì vua có bị chiếu tướng không ???
+    bool Is_Safe_Move(const Piece *pieceCheck, const int &destRow, const int &destCol, const int &rowKing, const int &colKing, const Color &colorking);
     // Hàm lấy dữ liệu quân cờ
     Piece *Get_Piece_At(int row, int col) const
     {
