@@ -65,6 +65,7 @@ private:
 
     };
     std::vector<MoveRecord> moveHistory;
+    std::vector<MoveRecord> redoHistory;
     int currentIndex = -1;
     
 public:
@@ -99,6 +100,7 @@ public:
     bool Undo(); //check trạng thái redo hay undo
     bool Redo();
     void ShowMoveHistory();
+    void ClearRedo();
     std::string GetFen(int startRow, int startCol, int destRow, int destCol);
 };
 

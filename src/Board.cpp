@@ -134,19 +134,20 @@ void Board::SaveMoveToHistory(int startRow, int startCol, int destRow, int destC
     record.capturedPiece = std::move(grid[destRow][destCol]);//move pointer từ grid về history
     record.FEN = GetFen(startRow,startCol,destRow,destCol);
     record.previousCastlingState = castlingFlags;
-    //delete chronological order của vector history sau index hiện tại nếu redo //
-    if (currentIndex < (int)moveHistory.size()-1){
-        moveHistory.erase(moveHistory.begin() + currentIndex + 1, moveHistory.end());
-    }
+
 
     moveHistory.push_back(std::move(record));
     currentIndex++;//đẩy vị trí hiện tại vào cuối ds và +index
+    //Đi rồi không còn redo nữa.
+    ClearRedo();
 }
 
 bool Board::Undo(){
     if (currentIndex<0) return false;
 
     MoveRecord& lastmove = moveHistory[currentIndex];
+    //save vào redo trước khi undo
+    redoHistory.push_back(lastmove);
     //Quay về chỗ cũ
     Update_Position(lastmove.destRow, lastmove.destCol, lastmove.startRow,lastmove.startCol);
     //quay quân ăn về vị trí cũ nếu có
@@ -161,7 +162,32 @@ bool Board::Undo(){
     
     currentIndex--;
     return true;
+}
 
+bool Board::Redo() {
+    if (redoHistory.empty()) return false;
+    //Lấy dữ liệu của redo bồi vào
+    MoveRecord redomove = std::move(redoHistory.back());
+    redoHistory.pop_back();
+    //Thực thi trực tiếp thay vì save vào movehistroy
+    Piece* piece = Get_Piece_At(redomove.startRow,redomove.startCol);
+    if (!piece) return false;
+
+    if (SpecialMove(redomove.startRow,redomove.startCol,redomove.destRow,redomove.destCol))
+        ExecuteSpecialMove(redomove.startRow,redomove.startCol,redomove.destRow,redomove.destCol);
+    else
+        {
+            TrackPieceMovement(redomove.startRow,redomove.destCol);
+            Update_Position(redomove.startRow,redomove.startCol,redomove.destRow,redomove.destCol);
+        }
+    //thực thi xong thì lưu lại vào movehistory
+    moveHistory.push_back(std::move(redomove));
+    currentIndex++;
+
+    return true;
+}
+void Board::ClearRedo(){
+    redoHistory.clear();
 }
 //======================SPECIAL SECTION============================//
 bool Board::SpecialMove(int startRow, int startCol, int destRow, int destCol)
