@@ -26,11 +26,11 @@ class Board
 {
 private:
     BoardGrid grid;
-    char sideToMove;             // Ai là người đi tiếp theo?
+    std::string sideToMove;             // Ai là người đi tiếp theo?
     std::string castlingRights;      // Quyền nhập thành ( vua, xe chưa di chuyển )
-    std::string enPassantTarget;     // Bắt tốt qua đường
-    int halfmoveClock;           // Luật 50 nước
-    int fullmoveNumber;         // Số lượt đi của ván đấu
+    std::string enPassantTarget = "-";     // Bắt tốt qua đường
+    int halfmoveClock = 0;           // Luật 50 nước
+    int fullmoveNumber = 1;         // Số lượt đi của ván đấu
 
     //==========SPECIAL MOVE LOL========//
     bool SpecialMove(int startRow, int startCol, int destRow, int destCol); //Check nước đặc biệt
@@ -95,6 +95,10 @@ public:
             return nullptr;
         return grid[row][col].get();
     }
+    //lấy kí tự quân
+    char GetPieceChar(Piece* piece);
+    void UpdateGameState(Piece* movingPiece);
+    void UpdateCastlingRights();
     //=====Rollback và history=====//
     void SaveMoveToHistory(int startRow, int startCol, int destRow, int destCol);
     bool Undo(); //check trạng thái redo hay undo
