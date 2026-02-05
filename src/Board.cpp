@@ -1,5 +1,5 @@
 #include "../include/Board.h"
-
+//=====================FEN Notation===============//
 void Board::Set_Up_Board(std::string &FEN)
 {
     // Làm sạch bàn cờ cũ
@@ -63,6 +63,50 @@ void Board::Set_Up_Board(std::string &FEN)
             col++;
         }
     }
+}
+
+char Board::GetPieceChar(Piece* piece){
+    if (!piece) return ' ';
+    char c;
+    Name name = piece->Get_Name();
+    switch (name){
+        case Name::King: c='K';break;
+        case Name::Knight: c='N';break;
+        case Name::Pawn: c='P';break;
+        case Name::Bishop: c='B';break;
+        case Name::Queen: c='Q';break;
+        case Name::Rook: c='R';break;
+        case Name::None: c=' ';break;
+    }
+    if (piece->Get_Color() == Color::Black) c=std::tolower(c);
+    return c;
+}
+std::string Board::GetFen(){
+    std::string fen= "";
+    for (int row=0;row<8;row++) {
+        int empty=0;
+        for (int col=0;col<8;col++){
+            Piece* piece = Get_Piece_At(row,col);
+            if (piece == nullptr) empty++;
+            else {
+                if (empty>0){
+                    fen += std::to_string(empty);
+                    empty = 0;
+                }
+            char pieceChar = GetPieceChar(piece);
+            fen += pieceChar;
+            }
+        }
+        if (empty>0) fen+=std::to_string(empty);
+        if (row<7) fen+="/";
+    }
+    fen += " " + sideToMove;          
+    fen += " " + castlingRights;         
+    fen += " " + enPassantTarget;      
+    fen += " " + std::to_string(halfmoveClock);   
+    fen += " " + std::to_string(fullmoveNumber);
+
+    return fen;
 }
 // Hàm kiểm tra các quân cờ có được di chuyển hay không ( ngoại lệ && đúng luật )
 bool Board::Can_Move(int startRow, int startCol, int destRow, int destCol)
@@ -132,7 +176,7 @@ void Board::SaveMoveToHistory(int startRow, int startCol, int destRow, int destC
     record.destRow = destRow; record.destCol = destCol;
     record.WasSpecialMove = SpecialMove(startRow,startCol,destRow,destCol);
     record.capturedPiece = std::move(grid[destRow][destCol]);//move pointer từ grid về history
-    record.FEN = GetFen(startRow,startCol,destRow,destCol);
+    record.FEN = GetFen();
     record.previousCastlingState = castlingFlags;
 
 
@@ -402,8 +446,22 @@ void Board::TrackPieceMovement(int startRow, int startCol)
             }
         }
     }
+    UpdateCastlingRights();
 } //
+void Board::UpdateCastlingRights(){
+    castlingRights = "";
+    //parse về fen
+    if (!castlingFlags.whiteKing && !castlingFlags.whiteRookKing) 
+        castlingRights += "K";
+    if (!castlingFlags.whiteKing && !castlingFlags.whiteRookQueen) 
+        castlingRights += "Q";
+    if (!castlingFlags.blackKing && !castlingFlags.blackRookKing) 
+        castlingRights += "k";
+    if (!castlingFlags.blackKing && !castlingFlags.blackRookQueen) 
+        castlingRights += "q";
 
+    if (castlingRights.empty()) castlingRights = "-";
+}
 //=======================================================//
 
 // Hàm cập nhật di chuyển quân cờ, ăn quân địch
