@@ -520,7 +520,7 @@ bool Board::Can_Escape_Check(const int &rowKing, const int &colKing, const Color
     {
         // tìm quân có thể ăn quân mã ( đang chiếu tướng ) && ktra có còn bị chiếu tướng không ?
         Piece *piece = Get_Checking_Piece(posCheck.first, posCheck.second, pieceCheck->Get_Color());
-        if (Is_Safe_Move(piece, posCheck.first, posCheck.second, rowKing, colKing, colorKing)) // Quân cờ ăn được quân mã đang chiếu tướng
+        if (piece && Is_Safe_Move(piece, posCheck.first, posCheck.second, rowKing, colKing, colorKing))
             return true;
     }
     int stepRow = (posCheck.first == rowKing) ? 0 : (rowKing > posCheck.first) ? 1
@@ -532,7 +532,7 @@ bool Board::Can_Escape_Check(const int &rowKing, const int &colKing, const Color
     while (currR != rowKing || currC != colKing)
     {
         Piece *piece = Get_Checking_Piece(currR, currC, pieceCheck->Get_Color());
-        if (Is_Safe_Move(piece, currR, currC, rowKing, colKing, colorKing)) // quân cờ có thể ăn địch đang chiếu || chặn đường
+        if (piece && Is_Safe_Move(piece, currR, currC, rowKing, colKing, colorKing))
             return true;
         currR += stepRow;
         currC += stepCol;
@@ -540,20 +540,20 @@ bool Board::Can_Escape_Check(const int &rowKing, const int &colKing, const Color
     return false;
 }
 // return true là đi không bị chiếu tướng
-bool Board::Is_Safe_Move(const Piece *pieceCheck, const int &destRow, const int &destCol, const int &rowKing, const int &colKing, const Color &colorKing)
+bool Board::Is_Safe_Move(const Piece *piece, const int &destRow, const int &destCol, const int &rowKing, const int &colKing, const Color &colorKing)
 {
-    std::pair<int, int> posCheck = pieceCheck->Get_Position();
-    if (Can_Move(posCheck.first, posCheck.second, destRow, destCol))
+    std::pair<int, int> pos = piece->Get_Position();
+    if (Can_Move(pos.first, pos.second, destRow, destCol))
     {
-        // NHẤC - ĐẶT
+        // Di chuyển đến vị trí mới để kiểm tra
         std::unique_ptr<Piece> capturedPiece = std::move(grid[destRow][destCol]);
-        Update_Position(posCheck.first, posCheck.second, destRow, destCol);
+        Update_Position(pos.first, pos.second, destRow, destCol);
 
-        Piece *pieceCheck = Get_Checking_Piece(rowKing, colKing, colorKing);
-        bool canEscape = (pieceCheck == nullptr);
+        Piece *checkingPiece = Get_Checking_Piece(rowKing, colKing, colorKing);
+        bool canEscape = (checkingPiece == nullptr);
 
-        // TRẢ - HOÀN TÁC
-        Update_Position(destRow, destCol, posCheck.first, posCheck.second);
+        // Trả về như cũ
+        Update_Position(destRow, destCol, pos.first, pos.second);
         grid[destRow][destCol] = std::move(capturedPiece);
 
         return canEscape;
