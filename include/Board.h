@@ -101,7 +101,7 @@ public:
     bool Redo();
     void ShowMoveHistory();
     void ClearRedo();
-    std::string GetFen(int startRow, int startCol, int destRow, int destCol);
+    std::string GetFen();
 };
 
 #endif
