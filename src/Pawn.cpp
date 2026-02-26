@@ -4,6 +4,7 @@ bool Pawn::Is_Valid_Move(int destRow, int destCol, const Board &grid)
 {
     // quân đen đi xuống, quân trắng đi lên
     int step = (color == Color::Black) ? 1 : -1;
+
     // kiểm tra quân đã di chuyển hay chưa
     bool isAtStartingRow = (color == Color::Black && row == 1) || (color == Color::White && row == 6);
 
