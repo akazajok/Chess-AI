@@ -610,6 +610,7 @@ bool Board::Is_Safe_Move(const Piece *piece, const int &destRow, const int &dest
 
         return canEscape;
     }
+    return true; // Nếu nước đi không hợp lệ thì mặc định AN TOÀN
 }
 
 //--------------------------------------------Hòa cờ---------------------------------------------
