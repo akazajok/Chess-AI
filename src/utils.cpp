@@ -1,7 +1,6 @@
-#include <bits/stdc++.h>
-#include "../include/Piece.h"
+#include "../include/utils.h"
 
-std::string convert_from_XY(int hang, int cot)
+std::string convert_from_XY(const int &hang, const int &cot)
 {
     char kitu_cot = cot + 97;
     char kitu_hang = '8' - hang;
@@ -22,8 +21,8 @@ void updatePosition(std::string board[8][8], std::string move)
 {
     std::string first_move = move.substr(0, 2);
     std::string last_move = move.substr(2, 2);
-    std::pair<int,int> start = convert_to_XY(first_move);
-    std::pair<int,int> end = convert_to_XY(last_move);
+    std::pair<int, int> start = convert_to_XY(first_move);
+    std::pair<int, int> end = convert_to_XY(last_move);
     std::string current = board[start.first][start.second];
     board[end.first][end.second] = current;
     board[start.first][start.second] = " .";
