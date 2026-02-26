@@ -593,6 +593,7 @@ bool Board::Can_Escape_Check(const int &rowKing, const int &colKing, const Color
 // return true là không bị chiếu tướng
 bool Board::Is_Safe_Move(const Piece *piece, const int &destRow, const int &destCol, const int &rowKing, const int &colKing, const Color &colorKing)
 {
+    // Phải là nước đi hợp lệ thì mới kiểm tra
     std::pair<int, int> pos = piece->Get_Position();
     if (Can_Move(pos.first, pos.second, destRow, destCol))
     {
@@ -609,9 +610,9 @@ bool Board::Is_Safe_Move(const Piece *piece, const int &destRow, const int &dest
 
         return canEscape;
     }
-    return true;
 }
 
+//--------------------------------------------Hòa cờ---------------------------------------------
 // Hòa do không đủ quân chiếu bí
 bool Board::Is_Insufficient_Material() const
 {
@@ -693,6 +694,7 @@ bool Board::Is_Insufficient_Material() const
     return false;
 }
 
+// Hòa do không còn nước đi hợp lệ
 bool Board::Has_Legal_Moves(Color color)
 {
     // Lấy tọa độ Vua của phe cần kiểm tra
@@ -731,6 +733,15 @@ bool Board::Has_Legal_Moves(Color color)
     }
     return false; // Duyệt hết mà không có nước nào đi được -> Stalemate hoặc Checkmate
 }
+
+// Hòa do luật 50 nước
+bool Board::Is_Draw_By_50_Moves()
+{
+    if (halfmoveClock >= 100)
+        return true;
+    return false;
+}
+//-------------------------------------------------------------------------------------------------
 
 std::string Board::Get_Current_FEN() const
 {

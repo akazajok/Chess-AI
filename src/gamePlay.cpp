@@ -90,6 +90,13 @@ void gameManager::Game_Turn()
             break;
         }
 
+        // Hòa do luật 50 nước
+        if (chessGame.Is_Draw_By_50_Moves())
+        {
+            std::cout << "Hòa do luật 50 nước";
+            break;
+        }
+
         // Kiểm tra tình trạng chiếu tướng
         if (chessGame.Get_Checking_Piece(rowKing, colKing, colorKing))
         {
@@ -118,14 +125,6 @@ void gameManager::Game_Turn()
             // Thực hiện di chuyển và cập nhật trạng thái
             chessGame.Execute_Move(start.first, start.second, dest.first, dest.second);
 
-            // Hòa do 50 nước
-            if (Is_Draw_By_50_Moves())
-            {
-                chessGame.Display();
-                std::cout << "Hòa do luật 50 nước";
-                break;
-            }
-
             // Logic đổi lượt người chơi
             chessGame.sideToMove = (chessGame.sideToMove == 'w') ? 'b' : 'w';
         }
@@ -136,12 +135,4 @@ void gameManager::Game_Turn()
             std::cin.get();
         }
     }
-}
-
-// Hòa do 50 nước && halfmoveClock thay đổi trong Execute_Move() - file Board.cpp
-bool gameManager::Is_Draw_By_50_Moves()
-{
-    if (chessGame.halfmoveClock >= 100)
-        return true;
-    return false;
 }

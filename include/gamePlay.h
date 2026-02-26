@@ -23,9 +23,6 @@ public:
 
     // Vòng lặp điều khiển lượt chơi và hiển thị
     void Game_Turn();
-
-    // Hòa do 50 nước
-    bool Is_Draw_By_50_Moves();
 };
 
 #endif

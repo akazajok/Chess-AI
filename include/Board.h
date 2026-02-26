@@ -102,6 +102,9 @@ public:
     // Kiểm tra xem phe (color) còn nước đi hợp lệ nào không
     bool Has_Legal_Moves(Color color);
 
+    // Hòa do luật 50 nước
+    bool Is_Draw_By_50_Moves();
+
     // Hàm lấy chuỗi fen
     std::string Get_Current_FEN() const;
 
