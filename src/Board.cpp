@@ -153,6 +153,16 @@ bool Board::Can_Move(int startRow, int startCol, int destRow, int destCol)
 // Thực thi di chuyển quân cờ
 void Board::Execute_Move(int startRow, int startCol, int destRow, int destCol)
 {
+    // Kiểm tra CASTLING trước (vì cần special validation)
+    if (IsCastlingMove(startRow, startCol, destRow, destCol))
+    {
+        //Save move vào history//
+        SaveMoveToHistory(startRow,startCol,destRow,destCol);
+        ExecuteCastling(startRow, startCol, destRow, destCol);
+        return;
+    }
+
+    // Kiểm tra move bình thường TRƯỚC khi check special moves khác
     if (!Can_Move(startRow, startCol, destRow, destCol))
         return;
 
@@ -161,16 +171,16 @@ void Board::Execute_Move(int startRow, int startCol, int destRow, int destCol)
 
     Piece *piece = Get_Piece_At(startRow, startCol);
 
-    // Kiểm nước đặc biệt TRƯỚC KHI track movement
-    if (SpecialMove(startRow, startCol, destRow, destCol))
+    // Kiểm các special moves khác (PROMOTION, En passant, etc.)
+    if (IsPromotion(startRow, startCol, destRow, destCol))
     {
-        ExecuteSpecialMove(startRow, startCol, destRow, destCol);
+        ExecutePromotion(startRow, startCol, destRow, destCol);
         return;
     }
 
     TrackPieceMovement(startRow, startCol);
 
-    // Rồi đi như bth
+    // Đi như bình thường
     Update_Position(startRow, startCol, destRow, destCol);
 }
 //======================HISTORY SECTION============================//
@@ -341,17 +351,29 @@ bool Board::IsCastlingMove(int startRow, int startCol, int destRow, int destCol)
 {
     Piece *piece = Get_Piece_At(startRow, startCol);
 
-    if (!piece)
+    if (!piece || piece->Get_Name() != Name::King)
         return false;
-    if (piece->Get_Name() == Name::King && // Nếu start là vua và sang ngang 2 ô
-        destRow == startRow &&
-        abs(destCol - startCol) == 2)
+        
+    // Kiểm tra cơ bản: vua di chuyển ngang 2 ô
+    if (destRow != startRow || abs(destCol - startCol) != 2)
+        return false;
 
-    {
-        bool isKingside = (destCol > startCol);
-        return CanCastle(piece->Get_Color(), isKingside);
-    }
-    return false;
+    // Kiểm tra bounds
+    if (destRow < 0 || destRow > 7 || destCol < 0 || destCol > 7)
+        return false;
+
+    bool isKingside = (destCol > startCol);
+    
+    // Kiểm tra có thể nhập thành không
+    if (!CanCastle(piece->Get_Color(), isKingside))
+        return false;
+
+    // Kiểm tra ô đích không có quân cùng phe
+    Piece *targetPiece = Get_Piece_At(destRow, destCol);
+    if (targetPiece && piece->Get_Color() == targetPiece->Get_Color())
+        return false;
+
+    return true;
 }
 bool Board::CanCastle(Color color, bool kingside)
 {
