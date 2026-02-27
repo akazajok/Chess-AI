@@ -105,9 +105,6 @@ public:
     // Hòa do luật 50 nước
     bool Is_Draw_By_50_Moves();
 
-    // Hàm lấy chuỗi fen
-    std::string Get_Current_FEN() const;
-
     // Hàm lấy dữ liệu quân cờ
     Piece *Get_Piece_At(int row, int col) const
     {

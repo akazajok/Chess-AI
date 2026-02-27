@@ -79,7 +79,6 @@ void gameManager::Game_Turn()
 
         chessGame.Display(); // Hiển thị bàn cờ ra console
         std::cout << chessGame.enPassantTarget << '\n';
-        std::cout << chessGame.Get_Current_FEN() << '\n';
 
         std::cout << "\nLUOT CUA PHE: " << (chessGame.sideToMove == 'w' ? "TRANG [W]" : "DEN [B]") << "\n";
 
