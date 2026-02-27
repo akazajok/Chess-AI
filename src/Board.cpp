@@ -1,4 +1,8 @@
 #include "../include/Board.h"
+#include <sstream>
+#include <iostream>
+#include <algorithm>
+#include <cctype>
 //=====================FEN Notation===============//
 void Board::Set_Up_Board(std::string &FEN)
 {
@@ -179,15 +183,19 @@ void Board::SaveMoveToHistory(int startRow, int startCol, int destRow, int destC
     record.FEN = GetFen();
     record.previousCastlingState = castlingFlags;
 
+    // Clear any future moves if we're in middle of history
+    if (currentIndex < (int)moveHistory.size() - 1) {
+        moveHistory.erase(moveHistory.begin() + currentIndex + 1, moveHistory.end());
+    }
 
     moveHistory.push_back(std::move(record));
-    currentIndex++;//đẩy vị trí hiện tại vào cuối ds và +index
+    currentIndex = moveHistory.size() - 1; // Set to last valid index
     //Đi rồi không còn redo nữa.
     ClearRedo();
 }
 
 bool Board::Undo(){
-    if (currentIndex<0) return false;
+    if (currentIndex < 0 || moveHistory.empty() || currentIndex >= moveHistory.size()) return false;
 
     MoveRecord& lastmove = moveHistory[currentIndex];
     //save vào redo trước khi undo
@@ -200,9 +208,10 @@ bool Board::Undo(){
     }
     //Flags castling back nếu có.
     castlingFlags = lastmove.previousCastlingState;
-    //special move
-    if (lastmove.WasSpecialMove){}
-        //holder//
+    //special move - cần handle castling undo đặc biệt
+    if (lastmove.WasSpecialMove){
+        // TODO: Handle special move undo logic
+    }
     
     currentIndex--;
     return true;
@@ -210,21 +219,20 @@ bool Board::Undo(){
 
 bool Board::Redo() {
     if (redoHistory.empty()) return false;
-    //Lấy dữ liệu của redo bồi vào
-    MoveRecord redomove = std::move(redoHistory.back());
+    //Lấy dữ liệu của redo
+    MoveRecord redomove = redoHistory.back();
     redoHistory.pop_back();
-    //Thực thi trực tiếp thay vì save vào movehistroy
-    Piece* piece = Get_Piece_At(redomove.startRow,redomove.startCol);
-    if (!piece) return false;
-
-    if (SpecialMove(redomove.startRow,redomove.startCol,redomove.destRow,redomove.destCol))
+    
+    //Thực thi trực tiếp KHÔNG save vào movehistory
+    if (redomove.WasSpecialMove)
         ExecuteSpecialMove(redomove.startRow,redomove.startCol,redomove.destRow,redomove.destCol);
     else
         {
-            TrackPieceMovement(redomove.startRow,redomove.startCol); // ✅ SỬA: startCol thay vì destCol
+            TrackPieceMovement(redomove.startRow,redomove.startCol);
             Update_Position(redomove.startRow,redomove.startCol,redomove.destRow,redomove.destCol);
         }
-    //thực thi xong thì lưu lại vào movehistory
+    
+    //Restore move vào history (không tạo mới)
     moveHistory.push_back(std::move(redomove));
     currentIndex++;
 
@@ -272,7 +280,6 @@ bool Board::IsPromotion(int startRow, int startCol, int destRow, int destCol)
     Piece *piece = Get_Piece_At(startRow, startCol);
     if (!piece || piece->Get_Name() != Name::Pawn)
         return false; // check xem có phải quân tốt không
-
     if (piece->Get_Color() == Color::White) {
         return startRow == 1 && destRow == 0;
     } else 
