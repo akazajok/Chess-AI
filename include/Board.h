@@ -12,10 +12,10 @@
 #include <utility> // pair
 #include <cmath>   // lấy phần dư kiểu float, double
 
+class gameManager;
+
 #include "../include/Piece.h"
 #include "../include/Utils.h"
-
-class gameManager;
 
 #include "../include/Pawn.h"
 #include "../include/Rook.h"
@@ -32,6 +32,7 @@ class Board
 
 private:
     BoardGrid grid;
+
     char sideToMove;                          // Ai là người đi
     std::string castlingRights;               // Quyền nhập thành ( vua, xe chưa di chuyển )
     std::string enPassantTarget;              // Bắt tốt qua đường
@@ -63,11 +64,25 @@ private:
     void ExecuteCastling(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
     bool CanCastle(Color color, bool kingside);
     void UpdateCastlingStat(Color color);
+
     void ParseCastlingRights(const std::string &rights);               // Giải mã FEN của Castling
     void TrackPieceMovement(const int &startRow, const int &startCol); // Track đã di chuyển hay chưa, có thể recycle
     // ăn tốt qua đường
     bool IsEnPassantMove(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
     void ExecuteEnPassant(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
+
+    //==========Move History============//
+    struct MoveRecord
+    {
+        int startRow, startCol, destRow, destCol;
+        std::unique_ptr<Piece> capturedPiece;
+        CastlingFlags previousCastlingState;
+        bool WasSpecialMove;
+        std::string FEN;
+    };
+    std::vector<MoveRecord> moveHistory;
+    std::vector<MoveRecord> redoHistory;
+    int currentIndex = -1;
 
 public:
     // hàm khởi tạo bàn cờ theo yêu cầu ( nhập dữ liệu chữ )
@@ -112,6 +127,18 @@ public:
             return nullptr;
         return grid[row][col].get();
     }
+
+    // lấy kí tự quân
+    char GetPieceChar(Piece *piece);
+    void UpdateGameState(Piece *movingPiece);
+    void UpdateCastlingRights();
+    //=====Rollback và history=====//
+    void SaveMoveToHistory(int startRow, int startCol, int destRow, int destCol);
+    bool Undo(); // check trạng thái redo hay undo
+    bool Redo();
+    void ShowMoveHistory();
+    void ClearRedo();
+    std::string GetFen();
 };
 
 #endif
