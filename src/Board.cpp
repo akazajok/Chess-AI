@@ -179,21 +179,27 @@ bool Board::Can_Move(const int &startRow, const int &startCol, const int &destRo
 // Thực thi di chuyển quân cờ
 void Board::Execute_Move(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
+    // Kiểm tra CASTLING trước && enPassant
+    if (IsCastlingMove(startRow, startCol, destRow, destCol) || IsEnPassantMove(startRow, startCol, destRow, destCol))
+    {
+        // Save move vào history//
+        SaveMoveToHistory(startRow, startCol, destRow, destCol);
+        ExecuteSpecialMove(startRow, startCol, destRow, destCol);
+        return;
+    }
+
+    // Kiểm tra move bình thường TRƯỚC khi check special moves khác
     if (!Can_Move(startRow, startCol, destRow, destCol))
         return;
 
-    Piece *piece = Get_Piece_At(startRow, startCol);
-
-    // Kiểm nước đặc biệt TRƯỚC KHI track movement
-    if (SpecialMove(startRow, startCol, destRow, destCol))
+    // Kiểm tra phong hậu
+    if (IsPromotion(startRow, startCol, destRow, destCol))
     {
+        SaveMoveToHistory(startRow, startCol, destRow, destCol);
         ExecutePromotion(startRow, startCol, destRow, destCol);
         return;
     }
     TrackPieceMovement(startRow, startCol);
-
-    if (!Can_Move(startRow, startCol, destRow, destCol))
-        return;
 
     //--------------------Hòa do 50 nước-----------------------
     Piece *movingPiece = Get_Piece_At(startRow, startCol);
@@ -215,9 +221,8 @@ void Board::Execute_Move(const int &startRow, const int &startCol, const int &de
     }
     //---------------------------------------------------------
 
-    fullmoveNumber++;
-
     // Đi như bình thường
+    SaveMoveToHistory(startRow, startCol, destRow, destCol);
     Update_Position(startRow, startCol, destRow, destCol);
 }
 
@@ -238,6 +243,86 @@ void Board::Update_Position(const int &startRow, const int &startCol, const int 
         (isBlack ? rowKingBlack : rowKingWhite) = destRow;
         (isBlack ? colKingBlack : colKingWhite) = destCol;
     }
+}
+
+//======================HISTORY SECTION============================//
+void Board::SaveMoveToHistory(int startRow, int startCol, int destRow, int destCol)
+{
+    MoveRecord record;
+    record.startRow = startRow;
+    record.startCol = startCol;
+    record.destRow = destRow;
+    record.destCol = destCol;
+    record.WasSpecialMove = SpecialMove(startRow, startCol, destRow, destCol);
+    record.capturedPiece = std::move(grid[destRow][destCol]); // move pointer từ grid về history
+    record.FEN = GetFen();
+    record.previousCastlingState = castlingFlags;
+
+    // Clear any future moves if we're in middle of history
+    if (currentIndex < (int)moveHistory.size() - 1)
+    {
+        moveHistory.erase(moveHistory.begin() + currentIndex + 1, moveHistory.end());
+    }
+
+    moveHistory.push_back(std::move(record));
+    currentIndex = moveHistory.size() - 1; // Set to last valid index
+    // Đi rồi không còn redo nữa.
+    ClearRedo();
+}
+
+bool Board::Undo()
+{
+    if (currentIndex < 0 || moveHistory.empty() || currentIndex >= moveHistory.size())
+        return false;
+
+    MoveRecord &lastmove = moveHistory[currentIndex];
+    // save vào redo trước khi undo
+    redoHistory.push_back(lastmove);
+    // Quay về chỗ cũ
+    Update_Position(lastmove.destRow, lastmove.destCol, lastmove.startRow, lastmove.startCol);
+    // quay quân ăn về vị trí cũ nếu có
+    if (lastmove.capturedPiece)
+    {
+        grid[lastmove.destRow][lastmove.destCol] = std::move(lastmove.capturedPiece);
+    }
+    // Flags castling back nếu có.
+    castlingFlags = lastmove.previousCastlingState;
+    // special move - cần handle castling undo đặc biệt
+    if (lastmove.WasSpecialMove)
+    {
+        // TODO: Handle special move undo logic
+    }
+
+    currentIndex--;
+    return true;
+}
+
+bool Board::Redo()
+{
+    if (redoHistory.empty())
+        return false;
+    // Lấy dữ liệu của redo
+    MoveRecord redomove = redoHistory.back();
+    redoHistory.pop_back();
+
+    // Thực thi trực tiếp KHÔNG save vào movehistory
+    if (redomove.WasSpecialMove)
+        ExecuteSpecialMove(redomove.startRow, redomove.startCol, redomove.destRow, redomove.destCol);
+    else
+    {
+        TrackPieceMovement(redomove.startRow, redomove.startCol);
+        Update_Position(redomove.startRow, redomove.startCol, redomove.destRow, redomove.destCol);
+    }
+
+    // Restore move vào history (không tạo mới)
+    moveHistory.push_back(std::move(redomove));
+    currentIndex++;
+
+    return true;
+}
+void Board::ClearRedo()
+{
+    redoHistory.clear();
 }
 
 //======================SPECIAL SECTION============================//
@@ -720,7 +805,7 @@ bool Board::Is_Safe_Move(const Piece *piece, const int &destRow, const int &dest
 
         return canEscape;
     }
-    return true; // Nếu nước đi không hợp lệ thì mặc định AN TOÀN
+    return false;
 }
 
 //--------------------------------------------Hòa cờ---------------------------------------------

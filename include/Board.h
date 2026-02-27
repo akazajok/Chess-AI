@@ -75,7 +75,7 @@ private:
     struct MoveRecord
     {
         int startRow, startCol, destRow, destCol;
-        std::unique_ptr<Piece> capturedPiece;
+        Piece *capturedPiece;
         CastlingFlags previousCastlingState;
         bool WasSpecialMove;
         std::string FEN;

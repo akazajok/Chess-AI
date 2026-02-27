@@ -83,7 +83,7 @@ void gameManager::Game_Turn()
         colorKing = king->Get_Color();
 
         chessGame.Display(); // Hiển thị bàn cờ ra console
-        std::cout << chessGame.enPassantTarget << '\n';
+        std::cout << chessGame.enPassantTarget << " " << chessGame.fullmoveNumber << '\n';
 
         std::cout << "\nLUOT CUA PHE: " << (chessGame.sideToMove == 'w' ? "TRANG [W]" : "DEN [B]") << "\n";
 
@@ -135,6 +135,9 @@ void gameManager::Game_Turn()
 
         if (Is_Valid_Input(moveStr))
         {
+            if (chessGame.sideToMove == 'b')
+                chessGame.fullmoveNumber++;
+
             std::pair<int, int> start = convert_to_XY(moveStr.substr(0, 2));
             std::pair<int, int> dest = convert_to_XY(moveStr.substr(2, 2));
 
