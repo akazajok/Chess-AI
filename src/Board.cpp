@@ -221,7 +221,7 @@ bool Board::Redo() {
         ExecuteSpecialMove(redomove.startRow,redomove.startCol,redomove.destRow,redomove.destCol);
     else
         {
-            TrackPieceMovement(redomove.startRow,redomove.destCol);
+            TrackPieceMovement(redomove.startRow,redomove.startCol); // ✅ SỬA: startCol thay vì destCol
             Update_Position(redomove.startRow,redomove.startCol,redomove.destRow,redomove.destCol);
         }
     //thực thi xong thì lưu lại vào movehistory
@@ -271,10 +271,14 @@ bool Board::IsPromotion(int startRow, int startCol, int destRow, int destCol)
 {
     Piece *piece = Get_Piece_At(startRow, startCol);
     if (!piece || piece->Get_Name() != Name::Pawn)
-        return false; // check xem có phải quân thuờng không
+        return false; // check xem có phải quân tốt không
 
-    return (piece->Get_Color() == Color::White && destRow == 0) || // return true if này if nọ
-           (piece->Get_Color() == Color::Black && destRow == 7);
+    if (piece->Get_Color() == Color::White) {
+        return startRow == 1 && destRow == 0;
+    } else 
+        {
+        return startRow == 6 && destRow == 7;
+    }
 }
 
 void Board::ExecutePromotion(int startRow, int startCol, int destRow, int destCol)
