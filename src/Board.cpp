@@ -220,6 +220,26 @@ void Board::Execute_Move(const int &startRow, const int &startCol, const int &de
     // Đi như bình thường
     Update_Position(startRow, startCol, destRow, destCol);
 }
+
+// Hàm cập nhật di chuyển quân cờ, ăn quân địch
+void Board::Update_Position(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
+{
+    // cập nhật quân cờ vào vị trí đích và xóa vị trí cũ
+    grid[destRow][destCol] = std::move(grid[startRow][startCol]);
+    grid[startRow][startCol] = nullptr;
+
+    // cập nhật tọa độ mới cho quân cờ ( con trỏ )
+    grid[destRow][destCol]->Set_Position(destRow, destCol);
+
+    // Kiểm tra có phải quân Vua không -> Cập nhật vị trí
+    if (grid[destRow][destCol]->Get_Name() == Name::King)
+    {
+        bool isBlack = (grid[destRow][destCol]->Get_Color() == Color::Black);
+        (isBlack ? rowKingBlack : rowKingWhite) = destRow;
+        (isBlack ? colKingBlack : colKingWhite) = destCol;
+    }
+}
+
 //======================SPECIAL SECTION============================//
 bool Board::SpecialMove(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {

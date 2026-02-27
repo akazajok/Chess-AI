@@ -2,7 +2,7 @@
 #define GAMEPLAY_H
 
 #include "Board.h" // Bao gồm Board.h để gameManager sử dụng class Board
-#include "utils.h" // Sử dụng các hàm chuyển đổi tọa độ
+#include "Utils.h" // Sử dụng các hàm chuyển đổi tọa độ
 #include <string>
 
 class gameManager
