@@ -1,10 +1,12 @@
 #include "../include/gamePlay.h"
+#include "../include/Stockfish.h"
 
 gameManager::gameManager() : rowKing(-1), colKing(-1), colorKing(Color::None) {}
 
-void gameManager::Init_Game(std::string FEN)
+void gameManager::Init_Game(std::string FEN, GameMode mode)
 {
     chessGame.Set_Up_Board(FEN); // Khởi tạo quân cờ lên grid
+    currentMode = mode;
 }
 
 bool gameManager::Is_Valid_Input(const std::string &moveStr)
@@ -58,6 +60,9 @@ bool gameManager::Is_Valid_Input(const std::string &moveStr)
 
 void gameManager::Game_Turn()
 {
+    // Khởi tạo AI (đảm bảo đường dẫn tới file .exe chính xác)
+    Stockfish ai("stockfish-windows-x86-64-avx2.exe");
+
     while (true)
     {
         // Cập nhật tọa độ Vua của phe hiện tại từ Board
@@ -113,8 +118,20 @@ void gameManager::Game_Turn()
         }
 
         std::string moveStr;
-        std::cout << "Nhap nuoc di cua ban (vd: e2e4): ";
-        std::cin >> moveStr;
+        // Giả sử AI là phe Đen
+        if (currentMode == GameMode::PvE && chessGame.sideToMove == 'b')
+        {
+            std::cout << "AI dang suy nghi...\n";
+            // Lấy chuỗi FEN từ bàn cờ hiện tại
+            std::string currentFEN = chessGame.GetFen();
+            moveStr = ai.getBestMove(currentFEN);
+            std::cout << "AI di nuoc: " << moveStr << std::endl;
+        }
+        else
+        {
+            std::cout << "Nhap nuoc di cua ban (vd: e2e4): ";
+            std::cin >> moveStr;
+        }
 
         if (Is_Valid_Input(moveStr))
         {

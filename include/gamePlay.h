@@ -5,18 +5,26 @@
 #include "Utils.h" // Sử dụng các hàm chuyển đổi tọa độ
 #include <string>
 
+// PvP: 2 người, PvE: Chơi với AI
+enum class GameMode
+{
+    PvP,
+    PvE
+};
+
 class gameManager
 {
 private:
     Board chessGame; // Đối tượng bàn cờ duy nhất của trò chơi
     int rowKing, colKing;
     Color colorKing;
+    GameMode currentMode; // Biến lưu chế độ hiện tại
 
 public:
     gameManager(); // Khởi tạo các giá trị mặc định
 
     // Nạp dữ liệu bàn cờ từ chuỗi FEN
-    void Init_Game(std::string FEN);
+    void Init_Game(std::string FEN, GameMode mode);
 
     // Kiểm tra tính hợp lệ của nước đi nhập từ bàn phím
     bool Is_Valid_Input(const std::string &moveStr);
