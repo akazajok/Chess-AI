@@ -277,7 +277,7 @@ bool Board::Undo()
 
     MoveRecord &lastmove = moveHistory[currentIndex];
     // save vào redo trước khi undo
-    redoHistory.push_back(lastmove);
+    redoHistory.push_back(std::move(lastmove));
     // Quay về chỗ cũ
     Update_Position(lastmove.destRow, lastmove.destCol, lastmove.startRow, lastmove.startCol);
     // quay quân ăn về vị trí cũ nếu có
@@ -302,7 +302,7 @@ bool Board::Redo()
     if (redoHistory.empty())
         return false;
     // Lấy dữ liệu của redo
-    MoveRecord redomove = redoHistory.back();
+    MoveRecord redomove = std::move(redoHistory.back());
     redoHistory.pop_back();
 
     // Thực thi trực tiếp KHÔNG save vào movehistory
