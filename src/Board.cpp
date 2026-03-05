@@ -139,6 +139,9 @@ std::string Board::GetFen()
 // Hàm kiểm tra các quân cờ có được di chuyển hay không ( ngoại lệ && đúng luật )
 bool Board::Can_Move(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
+    // Nước đi đặc biệt
+    if (SpecialMove(startRow, startCol, destRow, destCol))
+        return true;
     // kiểm tra biên
     if (destRow < 0 || destRow > 7 || destCol < 0 || destCol > 7)
         return false;
@@ -170,10 +173,6 @@ bool Board::Can_Move(const int &startRow, const int &startCol, const int &destRo
         if (blocker && blocker != targetPiece)
             return false;
     }
-
-    // Nước đi đặc biệt
-    if (SpecialMove(startRow, startCol, destRow, destCol))
-        return true;
 
     return true;
 }

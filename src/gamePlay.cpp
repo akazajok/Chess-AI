@@ -79,8 +79,14 @@ void gameManager::Game_Turn()
         }
 
         Piece *king = chessGame.Get_Piece_At(rowKing, colKing);
-        if (!king)
+        if (!king || king->Get_Name() != Name::King)
+        {
+            std::string loser = (chessGame.sideToMove == 'w') ? "TRANG" : "DEN";
+            std::string winner = (chessGame.sideToMove == 'w') ? "DEN" : "TRANG";
+            std::cout << ">>> VUA " << loser << " DA BI AN! "
+                      << "PHE " << winner << " THANG! <<<\n";
             break;
+        }
         colorKing = king->Get_Color();
 
         chessGame.Display(); // Hiển thị bàn cờ ra console
@@ -140,7 +146,6 @@ void gameManager::Game_Turn()
         {
             if (chessGame.Undo())
             {
-                chessGame.Undo();
                 chessGame.sideToMove = (chessGame.sideToMove == 'w') ? 'b' : 'w';
                 std::cout << "Da quay lai luot truoc cua ban.\n";
             }
@@ -153,7 +158,7 @@ void gameManager::Game_Turn()
             // Chỉ Redo được nếu trước đó đã Undo
             if (chessGame.Redo())
             {
-                chessGame.Redo();
+                chessGame.sideToMove = (chessGame.sideToMove == 'w') ? 'b' : 'w';
                 std::cout << "Da thuc hien lai nuoc di vua xoa.\n";
             }
             else

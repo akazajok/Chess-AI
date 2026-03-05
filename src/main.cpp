@@ -3,7 +3,7 @@
 int main()
 {
     // Chuỗi FEN khởi tạo bàn cờ mặc định
-    std::string defaultFEN = "rnbq1bnr/pppppppp/4k3/8/3K4/8/PPPPPPPP/RNBQ1BNR w - - 0 1";
+    std::string defaultFEN = "2k5/3r2p1/5n2/8/8/2Q5/8/1K2N3 w - - 0 1";
 
     gameManager manager;
 
