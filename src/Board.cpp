@@ -172,8 +172,8 @@ bool Board::Can_Move(const int &startRow, const int &startCol, const int &destRo
     }
 
     // Nước đi đặc biệt
-    if (!SpecialMove(startRow, startCol, destRow, destCol))
-        return false;
+    if (SpecialMove(startRow, startCol, destRow, destCol))
+        return true;
 
     return true;
 }
@@ -184,21 +184,15 @@ void Board::Execute_Move(const int &startRow, const int &startCol, const int &de
     Piece *movingPiece = Get_Piece_At(startRow, startCol);
     Piece *targetPiece = Get_Piece_At(destRow, destCol);
 
-    // 1. Lưu lại các thuộc tính an toàn TRƯỚC khi di chuyển để tránh lỗi con trỏ bị xóa (Đặc biệt lúc phong cấp)
+    // Lưu lại các thuộc tính an toàn TRƯỚC khi di chuyển để tránh lỗi con trỏ bị xóa (Đặc biệt lúc phong cấp)
     Name movingName = movingPiece->Get_Name();
     bool isPawnDoubleMove = (movingName == Name::Pawn && abs(destRow - startRow) == 2);
     bool isEnPassant = IsEnPassantMove(startRow, startCol, destRow, destCol);
 
-    // 2. Cập nhật halfmoveClock cho luật 50 nước
-    if (movingName == Name::Pawn || targetPiece != nullptr || isEnPassant)
-        halfmoveClock = 0;
-    else
-        halfmoveClock++;
-
-    // 3. LƯU LẠI LỊCH SỬ TRƯỚC KHI THAY ĐỔI
+    // LƯU LẠI LỊCH SỬ TRƯỚC KHI THAY ĐỔI
     SaveMoveToHistory(startRow, startCol, destRow, destCol);
 
-    // 4. THỰC HIỆN NƯỚC ĐI
+    // THỰC HIỆN NƯỚC ĐI
     if (IsCastlingMove(startRow, startCol, destRow, destCol) || isEnPassant)
     {
         ExecuteSpecialMove(startRow, startCol, destRow, destCol);
@@ -213,7 +207,13 @@ void Board::Execute_Move(const int &startRow, const int &startCol, const int &de
         Update_Position(startRow, startCol, destRow, destCol);
     }
 
-    // 5. CẬP NHẬT MỤC TIÊU EN PASSANT CHO LƯỢT TIẾP THEO
+    // Cập nhật halfmoveClock cho luật 50 nước
+    if (movingName == Name::Pawn || targetPiece != nullptr || isEnPassant)
+        halfmoveClock = 0;
+    else
+        halfmoveClock++;
+
+    // CẬP NHẬT MỤC TIÊU EN PASSANT CHO LƯỢT TIẾP THEO
     enPassantTarget = "-";
     if (isPawnDoubleMove)
     {
@@ -624,6 +624,10 @@ void Board::ExecuteEnPassant(const int &startRow, const int &startCol, const int
 // lấy quân đang chặn đường || chiếu tướng
 Piece *Board::Get_Piece_On_Path(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
+    // tự chiếu chính mình
+    if (startRow == destRow && startCol == destCol)
+        return nullptr;
+
     // Xác định hướng di chuyển của xe hay tịnh
     int stepRow = (startRow == destRow) ? 0 : (destRow > startRow) ? 1
                                                                    : -1;
@@ -830,6 +834,8 @@ bool Board::Is_Safe_Move(const Piece *piece, const int &destRow, const int &dest
 
     // 3. Kiểm tra an toàn
     Piece *checkingPiece = Get_Checking_Piece(rowKing, colKing, colorKing);
+    if (checkingPiece)
+        std::cout << int(checkingPiece->Get_Name()) << '\n';
     bool canEscape = (checkingPiece == nullptr);
 
     // 4. TRẢ LẠI TRẠNG THÁI CŨ CHÍNH XÁC (Undo Simulation)
