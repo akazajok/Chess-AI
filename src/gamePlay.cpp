@@ -129,23 +129,43 @@ void gameManager::Game_Turn()
         }
         else
         {
-            std::cout << "Nhap nuoc di cua ban (vd: e2e4): ";
+            std::cout << "Nhap nuoc di cua ban (vd: e2e4) \n";
+            std::cout << "Neu muon di lai nhap Undo \n";
+            std::cout << "Khong cho di lai Redo \n";
             std::cin >> moveStr;
         }
-
+        if (to_lower(moveStr) == "undo")
+        {
+            if (chessGame.Undo())
+            {
+                chessGame.Undo();
+                chessGame.sideToMove = (chessGame.sideToMove == 'w') ? 'b' : 'w';
+                std::cout << "Da quay lai luot truoc cua ban.\n";
+            }
+            else
+                std::cout << "Chua the di lai\n";
+            continue;
+        }
+        else if (to_lower(moveStr) == "redo")
+        {
+            // Chỉ Redo được nếu trước đó đã Undo
+            if (chessGame.Redo())
+            {
+                chessGame.Redo();
+                std::cout << "Da thuc hien lai nuoc di vua xoa.\n";
+            }
+            else
+                std::cout << "Nguoi choi chua di lai\n";
+            continue;
+        }
         if (Is_Valid_Input(moveStr))
         {
-            if (chessGame.sideToMove == 'b')
-                chessGame.fullmoveNumber++;
 
             std::pair<int, int> start = convert_to_XY(moveStr.substr(0, 2));
             std::pair<int, int> dest = convert_to_XY(moveStr.substr(2, 2));
 
             // Thực hiện di chuyển và cập nhật trạng thái
             chessGame.Execute_Move(start.first, start.second, dest.first, dest.second);
-
-            // Logic đổi lượt người chơi
-            chessGame.sideToMove = (chessGame.sideToMove == 'w') ? 'b' : 'w';
         }
         else
         {

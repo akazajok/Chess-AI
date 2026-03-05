@@ -79,6 +79,8 @@ private:
         CastlingFlags previousCastlingState;
         bool WasSpecialMove;
         std::string FEN;
+        int previousFullmoveNumber;          // tổng số nước đi
+        std::string previousEnPassantTarget; // bắt tốt qua đường
     };
     std::vector<MoveRecord> moveHistory;
     std::vector<MoveRecord> redoHistory;

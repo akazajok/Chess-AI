@@ -179,51 +179,50 @@ bool Board::Can_Move(const int &startRow, const int &startCol, const int &destRo
 // Thực thi di chuyển quân cờ
 void Board::Execute_Move(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
-    // Kiểm tra CASTLING trước && enPassant
-    if (IsCastlingMove(startRow, startCol, destRow, destCol) || IsEnPassantMove(startRow, startCol, destRow, destCol))
-    {
-        // Save move vào history//
-        SaveMoveToHistory(startRow, startCol, destRow, destCol);
-        ExecuteSpecialMove(startRow, startCol, destRow, destCol);
-        return;
-    }
 
-    // Kiểm tra move bình thường TRƯỚC khi check special moves khác
-    if (!Can_Move(startRow, startCol, destRow, destCol))
-        return;
-
-    // Kiểm tra phong hậu
-    if (IsPromotion(startRow, startCol, destRow, destCol))
-    {
-        SaveMoveToHistory(startRow, startCol, destRow, destCol);
-        ExecutePromotion(startRow, startCol, destRow, destCol);
-        return;
-    }
-    TrackPieceMovement(startRow, startCol);
-
-    //--------------------Hòa do 50 nước-----------------------
     Piece *movingPiece = Get_Piece_At(startRow, startCol);
     Piece *targetPiece = Get_Piece_At(destRow, destCol);
 
-    // Nếu là nước đi của Tốt hoặc có ăn quân -> Reset clock
-    if (movingPiece->Get_Name() == Name::Pawn || targetPiece != nullptr)
+    // Cập nhật halfmoveClock cho luật 50 nước
+    if (movingPiece->Get_Name() == Name::Pawn || targetPiece != nullptr || IsEnPassantMove(startRow, startCol, destRow, destCol))
         halfmoveClock = 0;
     else
         halfmoveClock++;
-    //-----------------------------------------------------------
 
-    //--------------------Ăn tốt qua đường---------------------
+    // Cập nhật mục tiêu En Passant nếu tốt tiến 2 ô
     enPassantTarget = "-";
     if (movingPiece->Get_Name() == Name::Pawn && abs(destRow - startRow) == 2)
     {
-        int result = (startRow + destRow) / 2; // hàng ở giữa ;
+        int result = (startRow + destRow) / 2;
         enPassantTarget = convert_from_XY(result, destCol);
     }
-    //---------------------------------------------------------
 
-    // Đi như bình thường
+    // Lưu lại bản ghi di chuyển vào lịch sử trước khi thực hiện thay đổi
     SaveMoveToHistory(startRow, startCol, destRow, destCol);
-    Update_Position(startRow, startCol, destRow, destCol);
+
+    // Thực hiện các nước đi đặc biệt (Nhập thành, Phong cấp, Bắt tốt qua đường)
+    if (IsCastlingMove(startRow, startCol, destRow, destCol) || IsEnPassantMove(startRow, startCol, destRow, destCol))
+    {
+        ExecuteSpecialMove(startRow, startCol, destRow, destCol);
+    }
+    else if (IsPromotion(startRow, startCol, destRow, destCol))
+    {
+        ExecutePromotion(startRow, startCol, destRow, destCol);
+    }
+    else
+    {
+        // Thực hiện nước đi bình thường
+
+        TrackPieceMovement(startRow, startCol);
+        Update_Position(startRow, startCol, destRow, destCol);
+    }
+
+    // --- QUẢN LÝ TRẠNG THÁI GAME ---
+    if (sideToMove == 'b')
+        fullmoveNumber++;
+
+    // Đổi lượt người chơi
+    sideToMove = (sideToMove == 'w') ? 'b' : 'w';
 }
 
 // Hàm cập nhật di chuyển quân cờ, ăn quân địch
@@ -249,6 +248,8 @@ void Board::Update_Position(const int &startRow, const int &startCol, const int 
 void Board::SaveMoveToHistory(int startRow, int startCol, int destRow, int destCol)
 {
     MoveRecord record;
+    record.previousFullmoveNumber = fullmoveNumber;
+    record.previousEnPassantTarget = enPassantTarget;
     record.startRow = startRow;
     record.startCol = startCol;
     record.destRow = destRow;
@@ -276,6 +277,10 @@ bool Board::Undo()
         return false;
 
     MoveRecord &lastmove = moveHistory[currentIndex];
+
+    fullmoveNumber = lastmove.previousFullmoveNumber;
+    enPassantTarget = lastmove.previousEnPassantTarget;
+
     // save vào redo trước khi undo
     redoHistory.push_back(std::move(lastmove));
     // Quay về chỗ cũ
@@ -301,9 +306,13 @@ bool Board::Redo()
 {
     if (redoHistory.empty())
         return false;
+
     // Lấy dữ liệu của redo
     MoveRecord redomove = std::move(redoHistory.back());
     redoHistory.pop_back();
+
+    if (sideToMove == 'b')
+        fullmoveNumber++;
 
     // Thực thi trực tiếp KHÔNG save vào movehistory
     if (redomove.WasSpecialMove)

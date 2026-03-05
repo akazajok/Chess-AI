@@ -38,3 +38,10 @@ bool isValidMoveFormat(std::string move)
     else
         return false;
 }
+// Trong utils.cpp
+std::string to_lower(std::string s)
+{
+    for (char &c : s)
+        c = std::tolower((unsigned char)c);
+    return s;
+}
