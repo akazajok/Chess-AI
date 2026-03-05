@@ -139,8 +139,6 @@ std::string Board::GetFen()
 // Hàm kiểm tra các quân cờ có được di chuyển hay không ( ngoại lệ && đúng luật )
 bool Board::Can_Move(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
-    if (SpecialMove(startRow, startCol, destRow, destCol))
-        return true;
     // kiểm tra biên
     if (destRow < 0 || destRow > 7 || destCol < 0 || destCol > 7)
         return false;
@@ -173,6 +171,10 @@ bool Board::Can_Move(const int &startRow, const int &startCol, const int &destRo
             return false;
     }
 
+    // Nước đi đặc biệt
+    if (!SpecialMove(startRow, startCol, destRow, destCol))
+        return false;
+
     return true;
 }
 
@@ -182,43 +184,41 @@ void Board::Execute_Move(const int &startRow, const int &startCol, const int &de
     Piece *movingPiece = Get_Piece_At(startRow, startCol);
     Piece *targetPiece = Get_Piece_At(destRow, destCol);
 
-    // 1. KIỂM TRA & LƯU LẠI LOẠI NƯỚC ĐI TỪ TRƯỚC (Vì trạng thái bàn cờ chuẩn bị thay đổi)
+    // 1. Lưu lại các thuộc tính an toàn TRƯỚC khi di chuyển để tránh lỗi con trỏ bị xóa (Đặc biệt lúc phong cấp)
+    Name movingName = movingPiece->Get_Name();
+    bool isPawnDoubleMove = (movingName == Name::Pawn && abs(destRow - startRow) == 2);
     bool isEnPassant = IsEnPassantMove(startRow, startCol, destRow, destCol);
-    bool isCastling = IsCastlingMove(startRow, startCol, destRow, destCol);
-    bool isPromotion = IsPromotion(startRow, startCol, destRow, destCol);
 
-    // 2. Lưu lịch sử
-    SaveMoveToHistory(startRow, startCol, destRow, destCol);
-
-    // 3. Cập nhật halfmoveClock cho luật 50 nước
-    if (movingPiece->Get_Name() == Name::Pawn || targetPiece != nullptr || isEnPassant)
+    // 2. Cập nhật halfmoveClock cho luật 50 nước
+    if (movingName == Name::Pawn || targetPiece != nullptr || isEnPassant)
         halfmoveClock = 0;
     else
         halfmoveClock++;
 
-    // 4. LUÔN LUÔN RESET EN PASSANT TARGET CHO MỌI NƯỚC ĐI
-    enPassantTarget = "-";
-    // Chỉ tạo mục tiêu mới nếu đúng là Tốt vừa tiến 2 ô
-    if (movingPiece->Get_Name() == Name::Pawn && abs(destRow - startRow) == 2)
-    {
-        int result = (startRow + destRow) / 2;
-        enPassantTarget = convert_from_XY(result, destCol);
-    }
+    // 3. LƯU LẠI LỊCH SỬ TRƯỚC KHI THAY ĐỔI
+    SaveMoveToHistory(startRow, startCol, destRow, destCol);
 
-    // 5. THỰC THI DI CHUYỂN DỰA TRÊN CÁC BIẾN BOOL ĐÃ LƯU Ở BƯỚC 1
-    if (isCastling || isEnPassant)
+    // 4. THỰC HIỆN NƯỚC ĐI
+    if (IsCastlingMove(startRow, startCol, destRow, destCol) || isEnPassant)
     {
         ExecuteSpecialMove(startRow, startCol, destRow, destCol);
     }
-    else if (isPromotion)
+    else if (IsPromotion(startRow, startCol, destRow, destCol))
     {
         ExecutePromotion(startRow, startCol, destRow, destCol);
     }
     else
     {
-        // Thực hiện nước đi bình thường
         TrackPieceMovement(startRow, startCol);
         Update_Position(startRow, startCol, destRow, destCol);
+    }
+
+    // 5. CẬP NHẬT MỤC TIÊU EN PASSANT CHO LƯỢT TIẾP THEO
+    enPassantTarget = "-";
+    if (isPawnDoubleMove)
+    {
+        int result = (startRow + destRow) / 2;
+        enPassantTarget = convert_from_XY(result, destCol);
     }
 
     // --- QUẢN LÝ TRẠNG THÁI GAME ---
@@ -228,7 +228,6 @@ void Board::Execute_Move(const int &startRow, const int &startCol, const int &de
     // Đổi lượt người chơi
     sideToMove = (sideToMove == 'w') ? 'b' : 'w';
 }
-
 // Hàm cập nhật di chuyển quân cờ, ăn quân địch
 void Board::Update_Position(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
@@ -618,10 +617,7 @@ void Board::ExecuteEnPassant(const int &startRow, const int &startCol, const int
 
     Update_Position(startRow, startCol, destRow, destCol);
 
-    // xác định quân địch và ăn
-    int step = (pieceStart->Get_Color() == Color::White) ? 1 : -1;
-    std::cout << destRow << " " << destCol << " " << step << '\n';
-    grid[destRow + step][destCol] = nullptr;
+    grid[startRow][destCol] = nullptr;
     enPassantTarget = "-";
 }
 
@@ -814,22 +810,38 @@ bool Board::Can_Escape_Check(const int &rowKing, const int &colKing, const Color
 bool Board::Is_Safe_Move(const Piece *piece, const int &destRow, const int &destCol, const int &rowKing, const int &colKing, const Color &colorKing)
 {
     std::pair<int, int> pos = piece->Get_Position();
-    if (Can_Move(pos.first, pos.second, destRow, destCol))
+
+    if (!Can_Move(pos.first, pos.second, destRow, destCol))
+        return false;
+
+    // 1. Lưu lại trạng thái giả định
+    bool isEnPassant = IsEnPassantMove(pos.first, pos.second, destRow, destCol);
+    std::unique_ptr<Piece> capturedEnPassantPiece = nullptr;
+
+    if (isEnPassant)
     {
-        // Di chuyển đến vị trí mới để kiểm tra
-        std::unique_ptr<Piece> capturedPiece = std::move(grid[destRow][destCol]);
-        Update_Position(pos.first, pos.second, destRow, destCol);
+        capturedEnPassantPiece = std::move(grid[pos.first][destCol]);
+        grid[pos.first][destCol] = nullptr;
+    }
 
-        Piece *checkingPiece = Get_Checking_Piece(rowKing, colKing, colorKing);
-        bool canEscape = (checkingPiece == nullptr);
+    // 2. Thực hiện di chuyển giả định
+    std::unique_ptr<Piece> capturedPiece = std::move(grid[destRow][destCol]);
+    Update_Position(pos.first, pos.second, destRow, destCol);
 
-        // Trả về như cũ
-        Update_Position(destRow, destCol, pos.first, pos.second);
+    // 3. Kiểm tra an toàn
+    Piece *checkingPiece = Get_Checking_Piece(rowKing, colKing, colorKing);
+    bool canEscape = (checkingPiece == nullptr);
+
+    // 4. TRẢ LẠI TRẠNG THÁI CŨ CHÍNH XÁC (Undo Simulation)
+    Update_Position(destRow, destCol, pos.first, pos.second);
+
+    if (capturedPiece)
         grid[destRow][destCol] = std::move(capturedPiece);
 
-        return canEscape;
-    }
-    return false;
+    if (isEnPassant)
+        grid[pos.first][destCol] = std::move(capturedEnPassantPiece);
+
+    return canEscape;
 }
 
 //--------------------------------------------Hòa cờ---------------------------------------------
@@ -917,41 +929,43 @@ bool Board::Is_Insufficient_Material() const
 // Hòa do không còn nước đi hợp lệ
 bool Board::Has_Legal_Moves(Color color)
 {
-    // Lấy tọa độ Vua của phe cần kiểm tra
     int rKing = (color == Color::White) ? rowKingWhite : rowKingBlack;
     int cKing = (color == Color::White) ? colKingWhite : colKingBlack;
 
-    // Duyệt qua toàn bộ bàn cờ để tìm các quân cờ thuộc phe 'color'
+    // Bảo vệ an toàn: Nếu không tìm thấy vua (lỗi khởi tạo) thì ngừng ngay
+    if (rKing == -1 || cKing == -1)
+        return false;
+
     for (int r = 0; r < 8; r++)
     {
         for (int c = 0; c < 8; c++)
         {
             Piece *p = Get_Piece_At(r, c);
-
-            // Nếu ô có quân cờ và đúng màu phe mình
             if (p && p->Get_Color() == color)
             {
-                // Thử di chuyển quân cờ này đến mọi ô (destR, destC) trên bàn cờ
+                // Thử mọi ô đích
                 for (int destR = 0; destR < 8; destR++)
                 {
                     for (int destC = 0; destC < 8; destC++)
                     {
+                        // Bỏ qua nếu là chính ô đang đứng
+                        if (r == destR && c == destC)
+                            continue;
 
-                        // Nếu là quân Vua, tọa độ Vua mới sẽ là điểm đích (destR, destC)
                         int tempRKing = (p->Get_Name() == Name::King) ? destR : rKing;
                         int tempCKing = (p->Get_Name() == Name::King) ? destC : cKing;
 
-                        // Kiểm tra nước đi này có đúng luật và an toàn (không làm Vua bị chiếu) không
+                        // Chỉ cần 1 nước đi an toàn là thoát ngay
                         if (Is_Safe_Move(p, destR, destC, tempRKing, tempCKing, color))
                         {
-                            return true; // Chỉ cần 1 nước đi hợp lệ là chưa bị Stalemate
+                            return true;
                         }
                     }
                 }
             }
         }
     }
-    return false; // Duyệt hết mà không có nước nào đi được -> Stalemate hoặc Checkmate
+    return false;
 }
 
 // Hòa do luật 50 nước
