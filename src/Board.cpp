@@ -179,40 +179,44 @@ bool Board::Can_Move(const int &startRow, const int &startCol, const int &destRo
 // Thực thi di chuyển quân cờ
 void Board::Execute_Move(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
-
     Piece *movingPiece = Get_Piece_At(startRow, startCol);
     Piece *targetPiece = Get_Piece_At(destRow, destCol);
 
-    // Cập nhật halfmoveClock cho luật 50 nước
-    if (movingPiece->Get_Name() == Name::Pawn || targetPiece != nullptr || IsEnPassantMove(startRow, startCol, destRow, destCol))
+    // 1. KIỂM TRA & LƯU LẠI LOẠI NƯỚC ĐI TỪ TRƯỚC (Vì trạng thái bàn cờ chuẩn bị thay đổi)
+    bool isEnPassant = IsEnPassantMove(startRow, startCol, destRow, destCol);
+    bool isCastling = IsCastlingMove(startRow, startCol, destRow, destCol);
+    bool isPromotion = IsPromotion(startRow, startCol, destRow, destCol);
+
+    // 2. Lưu lịch sử
+    SaveMoveToHistory(startRow, startCol, destRow, destCol);
+
+    // 3. Cập nhật halfmoveClock cho luật 50 nước
+    if (movingPiece->Get_Name() == Name::Pawn || targetPiece != nullptr || isEnPassant)
         halfmoveClock = 0;
     else
         halfmoveClock++;
 
-    // Cập nhật mục tiêu En Passant nếu tốt tiến 2 ô
+    // 4. LUÔN LUÔN RESET EN PASSANT TARGET CHO MỌI NƯỚC ĐI
     enPassantTarget = "-";
+    // Chỉ tạo mục tiêu mới nếu đúng là Tốt vừa tiến 2 ô
     if (movingPiece->Get_Name() == Name::Pawn && abs(destRow - startRow) == 2)
     {
         int result = (startRow + destRow) / 2;
         enPassantTarget = convert_from_XY(result, destCol);
     }
 
-    // Lưu lại bản ghi di chuyển vào lịch sử trước khi thực hiện thay đổi
-    SaveMoveToHistory(startRow, startCol, destRow, destCol);
-
-    // Thực hiện các nước đi đặc biệt (Nhập thành, Phong cấp, Bắt tốt qua đường)
-    if (IsCastlingMove(startRow, startCol, destRow, destCol) || IsEnPassantMove(startRow, startCol, destRow, destCol))
+    // 5. THỰC THI DI CHUYỂN DỰA TRÊN CÁC BIẾN BOOL ĐÃ LƯU Ở BƯỚC 1
+    if (isCastling || isEnPassant)
     {
         ExecuteSpecialMove(startRow, startCol, destRow, destCol);
     }
-    else if (IsPromotion(startRow, startCol, destRow, destCol))
+    else if (isPromotion)
     {
         ExecutePromotion(startRow, startCol, destRow, destCol);
     }
     else
     {
         // Thực hiện nước đi bình thường
-
         TrackPieceMovement(startRow, startCol);
         Update_Position(startRow, startCol, destRow, destCol);
     }
@@ -250,6 +254,7 @@ void Board::SaveMoveToHistory(int startRow, int startCol, int destRow, int destC
     MoveRecord record;
     record.previousFullmoveNumber = fullmoveNumber;
     record.previousEnPassantTarget = enPassantTarget;
+    record.previousHalfmoveClock = halfmoveClock;
     record.startRow = startRow;
     record.startCol = startCol;
     record.destRow = destRow;
@@ -280,6 +285,7 @@ bool Board::Undo()
 
     fullmoveNumber = lastmove.previousFullmoveNumber;
     enPassantTarget = lastmove.previousEnPassantTarget;
+    halfmoveClock = lastmove.previousHalfmoveClock;
 
     // save vào redo trước khi undo
     redoHistory.push_back(std::move(lastmove));
@@ -310,6 +316,23 @@ bool Board::Redo()
     // Lấy dữ liệu của redo
     MoveRecord redomove = std::move(redoHistory.back());
     redoHistory.pop_back();
+
+    // ---- BỔ SUNG: CẬP NHẬT TRẠNG THÁI TRƯỚC KHI DI CHUYỂN ----
+    Piece *movingPiece = Get_Piece_At(redomove.startRow, redomove.startCol);
+    Piece *targetPiece = Get_Piece_At(redomove.destRow, redomove.destCol);
+    // Cập nhật halfmoveClock cho luật 50 nước
+    if (movingPiece->Get_Name() == Name::Pawn || targetPiece != nullptr || IsEnPassantMove(redomove.startRow, redomove.startCol, redomove.destRow, redomove.destCol))
+        halfmoveClock = 0;
+    else
+        halfmoveClock++;
+
+    // Cập nhật mục tiêu En Passant nếu tốt tiến 2 ô
+    enPassantTarget = "-";
+    if (movingPiece->Get_Name() == Name::Pawn && abs(redomove.destRow - redomove.startRow) == 2)
+    {
+        int result = (redomove.startRow + redomove.destRow) / 2;
+        enPassantTarget = convert_from_XY(result, redomove.destCol);
+    }
 
     if (sideToMove == 'b')
         fullmoveNumber++;
@@ -349,23 +372,13 @@ bool Board::SpecialMove(const int &startRow, const int &startCol, const int &des
 }
 void Board::ExecuteSpecialMove(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
-
     // Bước xử lí phù hợp
     if (IsCastlingMove(startRow, startCol, destRow, destCol))
-    {
         ExecuteCastling(startRow, startCol, destRow, destCol);
-        return;
-    }
-    if (IsPromotion(startRow, startCol, destRow, destCol))
-    {
+    else if (IsPromotion(startRow, startCol, destRow, destCol))
         ExecutePromotion(startRow, startCol, destRow, destCol);
-        return;
-    }
-    if (IsEnPassantMove(startRow, startCol, destRow, destCol))
-    {
+    else if (IsEnPassantMove(startRow, startCol, destRow, destCol))
         ExecuteEnPassant(startRow, startCol, destRow, destCol);
-        return;
-    }
 }
 //=======================Promotion Func=======================//
 bool Board::IsPromotion(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
@@ -607,6 +620,7 @@ void Board::ExecuteEnPassant(const int &startRow, const int &startCol, const int
 
     // xác định quân địch và ăn
     int step = (pieceStart->Get_Color() == Color::White) ? 1 : -1;
+    std::cout << destRow << " " << destCol << " " << step << '\n';
     grid[destRow + step][destCol] = nullptr;
     enPassantTarget = "-";
 }

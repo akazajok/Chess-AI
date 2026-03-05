@@ -80,6 +80,7 @@ private:
         bool WasSpecialMove;
         std::string FEN;
         int previousFullmoveNumber;          // tổng số nước đi
+        int previousHalfmoveClock;           // hòa do 50 nước
         std::string previousEnPassantTarget; // bắt tốt qua đường
     };
     std::vector<MoveRecord> moveHistory;
