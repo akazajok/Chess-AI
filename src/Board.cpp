@@ -258,9 +258,9 @@ void Board::SaveMoveToHistory(int startRow, int startCol, int destRow, int destC
     record.destRow = destRow;
     record.destCol = destCol;
     record.WasSpecialMove = SpecialMove(startRow, startCol, destRow, destCol);
-    record.capturedPiece = std::move(grid[destRow][destCol]); // move pointer từ grid về history
     record.FEN = GetFen();
     record.previousCastlingState = castlingFlags;
+    record.capturedPiece = std::move(grid[destRow][destCol]); // move pointer từ grid về history
 
     // Clear any future moves if we're in middle of history
     if (currentIndex < (int)moveHistory.size() - 1)
@@ -285,22 +285,29 @@ bool Board::Undo()
     enPassantTarget = lastmove.previousEnPassantTarget;
     halfmoveClock = lastmove.previousHalfmoveClock;
 
-    // save vào redo trước khi undo
-    redoHistory.push_back(std::move(lastmove));
-    // Quay về chỗ cũ
+    // Quay quân đi về vị trí cũ
     Update_Position(lastmove.destRow, lastmove.destCol, lastmove.startRow, lastmove.startCol);
-    // quay quân ăn về vị trí cũ nếu có
+
+    // Phục hồi quân bị ăn lên bàn cờ TRƯỚC (nếu có)
     if (lastmove.capturedPiece)
-    {
         grid[lastmove.destRow][lastmove.destCol] = std::move(lastmove.capturedPiece);
-    }
-    // Flags castling back nếu có.
+
+    // Flags castling back nếu có
     castlingFlags = lastmove.previousCastlingState;
+
+    // TODO: Handle special move undo logic ở đây...
     // special move - cần handle castling undo đặc biệt
+
     if (lastmove.WasSpecialMove)
     {
         // TODO: Handle special move undo logic
     }
+
+    // Lúc này capturedPiece trong record sẽ là nullptr
+    redoHistory.push_back(std::move(lastmove));
+
+    // Xóa cái vỏ rỗng còn sót lại trong moveHistory đi
+    moveHistory.pop_back();
 
     currentIndex--;
     return true;
@@ -341,6 +348,8 @@ bool Board::Redo()
     else
     {
         TrackPieceMovement(redomove.startRow, redomove.startCol);
+        // Bắt lại quân cờ (nếu có) trước khi đè lên ô đích
+        redomove.capturedPiece = std::move(grid[redomove.destRow][redomove.destCol]);
         Update_Position(redomove.startRow, redomove.startCol, redomove.destRow, redomove.destCol);
     }
 
