@@ -1,5 +1,6 @@
 #include "../include/Board.h"
 
+//=====================FEN Notation===============//
 void Board::Set_Up_Board(std::string &FEN)
 {
     // Làm sạch bàn cờ cũ
@@ -64,6 +65,77 @@ void Board::Set_Up_Board(std::string &FEN)
         }
     }
 }
+
+char Board::GetPieceChar(Piece *piece)
+{
+    if (!piece)
+        return ' ';
+    char c;
+    Name name = piece->Get_Name();
+    switch (name)
+    {
+    case Name::King:
+        c = 'K';
+        break;
+    case Name::Knight:
+        c = 'N';
+        break;
+    case Name::Pawn:
+        c = 'P';
+        break;
+    case Name::Bishop:
+        c = 'B';
+        break;
+    case Name::Queen:
+        c = 'Q';
+        break;
+    case Name::Rook:
+        c = 'R';
+        break;
+    case Name::None:
+        c = ' ';
+        break;
+    }
+    if (piece->Get_Color() == Color::Black)
+        c = std::tolower(c);
+    return c;
+}
+std::string Board::GetFen()
+{
+    std::string fen = "";
+    for (int row = 0; row < 8; row++)
+    {
+        int empty = 0;
+        for (int col = 0; col < 8; col++)
+        {
+            Piece *piece = Get_Piece_At(row, col);
+            if (piece == nullptr)
+                empty++;
+            else
+            {
+                if (empty > 0)
+                {
+                    fen += std::to_string(empty);
+                    empty = 0;
+                }
+                char pieceChar = GetPieceChar(piece);
+                fen += pieceChar;
+            }
+        }
+        if (empty > 0)
+            fen += std::to_string(empty);
+        if (row < 7)
+            fen += "/";
+    }
+    fen += " " + sideToMove;
+    fen += " " + castlingRights;
+    fen += " " + enPassantTarget;
+    fen += " " + std::to_string(halfmoveClock);
+    fen += " " + std::to_string(fullmoveNumber);
+
+    return fen;
+}
+
 // Hàm kiểm tra các quân cờ có được di chuyển hay không ( ngoại lệ && đúng luật )
 bool Board::Can_Move(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
@@ -107,41 +179,50 @@ bool Board::Can_Move(const int &startRow, const int &startCol, const int &destRo
 // Thực thi di chuyển quân cờ
 void Board::Execute_Move(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
-    // Kiểm nước đặc biệt TRƯỚC KHI track movement
-    if (SpecialMove(startRow, startCol, destRow, destCol))
-    {
-        ExecuteSpecialMove(startRow, startCol, destRow, destCol);
-        return;
-    }
-    TrackPieceMovement(startRow, startCol);
 
-    if (!Can_Move(startRow, startCol, destRow, destCol))
-        return;
-
-    //--------------------Hòa do 50 nước-----------------------
     Piece *movingPiece = Get_Piece_At(startRow, startCol);
     Piece *targetPiece = Get_Piece_At(destRow, destCol);
 
-    // Nếu là nước đi của Tốt hoặc có ăn quân -> Reset clock
-    if (movingPiece->Get_Name() == Name::Pawn || targetPiece != nullptr)
+    // Cập nhật halfmoveClock cho luật 50 nước
+    if (movingPiece->Get_Name() == Name::Pawn || targetPiece != nullptr || IsEnPassantMove(startRow, startCol, destRow, destCol))
         halfmoveClock = 0;
     else
         halfmoveClock++;
-    //-----------------------------------------------------------
 
-    //--------------------Ăn tốt qua đường---------------------
+    // Cập nhật mục tiêu En Passant nếu tốt tiến 2 ô
     enPassantTarget = "-";
     if (movingPiece->Get_Name() == Name::Pawn && abs(destRow - startRow) == 2)
     {
-        int result = (startRow + destRow) / 2; // hàng ở giữa ;
+        int result = (startRow + destRow) / 2;
         enPassantTarget = convert_from_XY(result, destCol);
     }
-    //---------------------------------------------------------
 
-    fullmoveNumber++;
+    // Lưu lại bản ghi di chuyển vào lịch sử trước khi thực hiện thay đổi
+    SaveMoveToHistory(startRow, startCol, destRow, destCol);
 
-    // Rồi đi như bth
-    Update_Position(startRow, startCol, destRow, destCol);
+    // Thực hiện các nước đi đặc biệt (Nhập thành, Phong cấp, Bắt tốt qua đường)
+    if (IsCastlingMove(startRow, startCol, destRow, destCol) || IsEnPassantMove(startRow, startCol, destRow, destCol))
+    {
+        ExecuteSpecialMove(startRow, startCol, destRow, destCol);
+    }
+    else if (IsPromotion(startRow, startCol, destRow, destCol))
+    {
+        ExecutePromotion(startRow, startCol, destRow, destCol);
+    }
+    else
+    {
+        // Thực hiện nước đi bình thường
+
+        TrackPieceMovement(startRow, startCol);
+        Update_Position(startRow, startCol, destRow, destCol);
+    }
+
+    // --- QUẢN LÝ TRẠNG THÁI GAME ---
+    if (sideToMove == 'b')
+        fullmoveNumber++;
+
+    // Đổi lượt người chơi
+    sideToMove = (sideToMove == 'w') ? 'b' : 'w';
 }
 
 // Hàm cập nhật di chuyển quân cờ, ăn quân địch
@@ -161,6 +242,96 @@ void Board::Update_Position(const int &startRow, const int &startCol, const int 
         (isBlack ? rowKingBlack : rowKingWhite) = destRow;
         (isBlack ? colKingBlack : colKingWhite) = destCol;
     }
+}
+
+//======================HISTORY SECTION============================//
+void Board::SaveMoveToHistory(int startRow, int startCol, int destRow, int destCol)
+{
+    MoveRecord record;
+    record.previousFullmoveNumber = fullmoveNumber;
+    record.previousEnPassantTarget = enPassantTarget;
+    record.startRow = startRow;
+    record.startCol = startCol;
+    record.destRow = destRow;
+    record.destCol = destCol;
+    record.WasSpecialMove = SpecialMove(startRow, startCol, destRow, destCol);
+    record.capturedPiece = std::move(grid[destRow][destCol]); // move pointer từ grid về history
+    record.FEN = GetFen();
+    record.previousCastlingState = castlingFlags;
+
+    // Clear any future moves if we're in middle of history
+    if (currentIndex < (int)moveHistory.size() - 1)
+    {
+        moveHistory.erase(moveHistory.begin() + currentIndex + 1, moveHistory.end());
+    }
+
+    moveHistory.push_back(std::move(record));
+    currentIndex = moveHistory.size() - 1; // Set to last valid index
+    // Đi rồi không còn redo nữa.
+    ClearRedo();
+}
+
+bool Board::Undo()
+{
+    if (currentIndex < 0 || moveHistory.empty() || currentIndex >= moveHistory.size())
+        return false;
+
+    MoveRecord &lastmove = moveHistory[currentIndex];
+
+    fullmoveNumber = lastmove.previousFullmoveNumber;
+    enPassantTarget = lastmove.previousEnPassantTarget;
+
+    // save vào redo trước khi undo
+    redoHistory.push_back(std::move(lastmove));
+    // Quay về chỗ cũ
+    Update_Position(lastmove.destRow, lastmove.destCol, lastmove.startRow, lastmove.startCol);
+    // quay quân ăn về vị trí cũ nếu có
+    if (lastmove.capturedPiece)
+    {
+        grid[lastmove.destRow][lastmove.destCol] = std::move(lastmove.capturedPiece);
+    }
+    // Flags castling back nếu có.
+    castlingFlags = lastmove.previousCastlingState;
+    // special move - cần handle castling undo đặc biệt
+    if (lastmove.WasSpecialMove)
+    {
+        // TODO: Handle special move undo logic
+    }
+
+    currentIndex--;
+    return true;
+}
+
+bool Board::Redo()
+{
+    if (redoHistory.empty())
+        return false;
+
+    // Lấy dữ liệu của redo
+    MoveRecord redomove = std::move(redoHistory.back());
+    redoHistory.pop_back();
+
+    if (sideToMove == 'b')
+        fullmoveNumber++;
+
+    // Thực thi trực tiếp KHÔNG save vào movehistory
+    if (redomove.WasSpecialMove)
+        ExecuteSpecialMove(redomove.startRow, redomove.startCol, redomove.destRow, redomove.destCol);
+    else
+    {
+        TrackPieceMovement(redomove.startRow, redomove.startCol);
+        Update_Position(redomove.startRow, redomove.startCol, redomove.destRow, redomove.destCol);
+    }
+
+    // Restore move vào history (không tạo mới)
+    moveHistory.push_back(std::move(redomove));
+    currentIndex++;
+
+    return true;
+}
+void Board::ClearRedo()
+{
+    redoHistory.clear();
 }
 
 //======================SPECIAL SECTION============================//
@@ -201,10 +372,15 @@ bool Board::IsPromotion(const int &startRow, const int &startCol, const int &des
 {
     Piece *piece = Get_Piece_At(startRow, startCol);
     if (!piece || piece->Get_Name() != Name::Pawn)
-        return false; // check xem có phải quân thuờng không
-
-    return (piece->Get_Color() == Color::White && destRow == 0) || // return true if này if nọ
-           (piece->Get_Color() == Color::Black && destRow == 7);
+        return false; // check xem có phải quân tốt không
+    if (piece->Get_Color() == Color::White)
+    {
+        return startRow == 1 && destRow == 0;
+    }
+    else
+    {
+        return startRow == 6 && destRow == 7;
+    }
 }
 void Board::ExecutePromotion(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
@@ -258,17 +434,29 @@ bool Board::IsCastlingMove(const int &startRow, const int &startCol, const int &
 {
     Piece *piece = Get_Piece_At(startRow, startCol);
 
-    if (!piece)
+    if (!piece || piece->Get_Name() != Name::King)
         return false;
-    if (piece->Get_Name() == Name::King && // Nếu start là vua và sang ngang 2 ô
-        destRow == startRow &&
-        abs(destCol - startCol) == 2)
 
-    {
-        bool isKingside = (destCol > startCol);
-        return CanCastle(piece->Get_Color(), isKingside);
-    }
-    return false;
+    // Kiểm tra cơ bản: vua di chuyển ngang 2 ô
+    if (destRow != startRow || abs(destCol - startCol) != 2)
+        return false;
+
+    // Kiểm tra bounds
+    if (destRow < 0 || destRow > 7 || destCol < 0 || destCol > 7)
+        return false;
+
+    bool isKingside = (destCol > startCol);
+
+    // Kiểm tra có thể nhập thành không
+    if (!CanCastle(piece->Get_Color(), isKingside))
+        return false;
+
+    // Kiểm tra ô đích không có quân cùng phe
+    Piece *targetPiece = Get_Piece_At(destRow, destCol);
+    if (targetPiece && piece->Get_Color() == targetPiece->Get_Color())
+        return false;
+
+    return true;
 }
 bool Board::CanCastle(Color color, bool kingside)
 {
@@ -371,8 +559,26 @@ void Board::TrackPieceMovement(const int &startRow, const int &startCol)
             }
         }
     }
-} //
+    UpdateCastlingRights();
+}
 
+//=======================================================//
+void Board::UpdateCastlingRights()
+{
+    castlingRights = "";
+    // parse về fen
+    if (!castlingFlags.whiteKing && !castlingFlags.whiteRookKing)
+        castlingRights += "K";
+    if (!castlingFlags.whiteKing && !castlingFlags.whiteRookQueen)
+        castlingRights += "Q";
+    if (!castlingFlags.blackKing && !castlingFlags.blackRookKing)
+        castlingRights += "k";
+    if (!castlingFlags.blackKing && !castlingFlags.blackRookQueen)
+        castlingRights += "q";
+
+    if (castlingRights.empty())
+        castlingRights = "-";
+}
 //=======================================================//
 //----------------------Ăn tốt qua đường-------------------
 bool Board::IsEnPassantMove(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
@@ -609,9 +815,10 @@ bool Board::Is_Safe_Move(const Piece *piece, const int &destRow, const int &dest
 
         return canEscape;
     }
-    return true;
+    return false;
 }
 
+//--------------------------------------------Hòa cờ---------------------------------------------
 // Hòa do không đủ quân chiếu bí
 bool Board::Is_Insufficient_Material() const
 {
@@ -693,6 +900,7 @@ bool Board::Is_Insufficient_Material() const
     return false;
 }
 
+// Hòa do không còn nước đi hợp lệ
 bool Board::Has_Legal_Moves(Color color)
 {
     // Lấy tọa độ Vua của phe cần kiểm tra
@@ -732,96 +940,14 @@ bool Board::Has_Legal_Moves(Color color)
     return false; // Duyệt hết mà không có nước nào đi được -> Stalemate hoặc Checkmate
 }
 
-std::string Board::Get_Current_FEN() const
+// Hòa do luật 50 nước
+bool Board::Is_Draw_By_50_Moves()
 {
-    std::string fen = "";
-    for (int row = 0; row < 8; row++)
-    {
-        int cnt = 0;
-        for (int col = 0; col < 8; col++)
-        {
-            if (grid[row][col] == nullptr)
-                cnt++;
-            else
-            {
-                if (cnt > 0)
-                {
-                    fen += std::to_string(cnt);
-                    cnt = 0;
-                }
-                char piece;
-                switch (grid[row][col]->Get_Name())
-                {
-                case Name::Pawn:
-                    piece = 'P';
-                    break;
-                case Name::Rook:
-                    piece = 'R';
-                    break;
-                case Name::Knight:
-                    piece = 'N';
-                    break;
-                case Name::Bishop:
-                    piece = 'B';
-                    break;
-                case Name::Queen:
-                    piece = 'Q';
-                    break;
-                case Name::King:
-                    piece = 'K';
-                    break;
-                default:
-                    break;
-                }
-                if (grid[row][col]->Get_Color() == Color::Black)
-                    piece = tolower(piece);
-                fen += piece;
-            }
-        }
-        if (cnt > 0)
-            fen += std::to_string(cnt);
-        if (row < 7)
-            fen += '/';
-    }
-
-    // phe đang đến lượt
-    fen += " ";
-    fen += sideToMove;
-
-    // quyền nhập thành
-    fen += " ";
-    std::string rights = "";
-    // Theo logic trong code của bạn: false nghĩa là chưa di chuyển (còn quyền)
-    if (!castlingFlags.whiteKing)
-    {
-        if (!castlingFlags.whiteRookKing)
-            rights += 'K';
-        if (!castlingFlags.whiteRookQueen)
-            rights += 'Q';
-    }
-    if (!castlingFlags.blackKing)
-    {
-        if (!castlingFlags.blackRookKing)
-            rights += 'k';
-        if (!castlingFlags.blackRookQueen)
-            rights += 'q';
-    }
-    fen += rights.empty() ? "-" : rights;
-
-    // Bắt tốt qua đường
-    fen += " ";
-    fen += enPassantTarget.empty() ? "-" : enPassantTarget;
-
-    // Hòa cờ do 50 nước
-    fen += " ";
-    fen += std::to_string(halfmoveClock);
-
-    // Tổng số nước đi
-    fen += " ";
-    fen += std::to_string(fullmoveNumber);
-
-    return fen;
+    if (halfmoveClock >= 100)
+        return true;
+    return false;
 }
+//-------------------------------------------------------------------------------------------------
 
 // Hàm hiển thị để kiểm tra
 void Board::Display()

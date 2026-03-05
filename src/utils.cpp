@@ -1,4 +1,4 @@
-#include "../include/utils.h"
+#include "../include/Utils.h"
 
 std::string convert_from_XY(const int &hang, const int &cot)
 {
@@ -37,4 +37,11 @@ bool isValidMoveFormat(std::string move)
         return true;
     else
         return false;
+}
+// Trong utils.cpp
+std::string to_lower(std::string s)
+{
+    for (char &c : s)
+        c = std::tolower((unsigned char)c);
+    return s;
 }

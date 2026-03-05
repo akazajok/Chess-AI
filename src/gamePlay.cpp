@@ -1,10 +1,12 @@
 #include "../include/gamePlay.h"
+#include "../include/Stockfish.h"
 
 gameManager::gameManager() : rowKing(-1), colKing(-1), colorKing(Color::None) {}
 
-void gameManager::Init_Game(std::string FEN)
+void gameManager::Init_Game(std::string FEN, GameMode mode)
 {
     chessGame.Set_Up_Board(FEN); // Khởi tạo quân cờ lên grid
+    currentMode = mode;
 }
 
 bool gameManager::Is_Valid_Input(const std::string &moveStr)
@@ -58,6 +60,10 @@ bool gameManager::Is_Valid_Input(const std::string &moveStr)
 
 void gameManager::Game_Turn()
 {
+
+    // Khởi tạo AI (đảm bảo đường dẫn tới file .exe chính xác)
+    Stockfish ai("stockfish-windows-x86-64-avx2.exe");
+
     while (true)
     {
         // Cập nhật tọa độ Vua của phe hiện tại từ Board
@@ -78,8 +84,7 @@ void gameManager::Game_Turn()
         colorKing = king->Get_Color();
 
         chessGame.Display(); // Hiển thị bàn cờ ra console
-        std::cout << chessGame.enPassantTarget << '\n';
-        std::cout << chessGame.Get_Current_FEN() << '\n';
+        std::cout << chessGame.enPassantTarget << " " << chessGame.fullmoveNumber << '\n';
 
         std::cout << "\nLUOT CUA PHE: " << (chessGame.sideToMove == 'w' ? "TRANG [W]" : "DEN [B]") << "\n";
 
@@ -87,6 +92,13 @@ void gameManager::Game_Turn()
         if (chessGame.Is_Insufficient_Material())
         {
             std::cout << ">>> HOA CO! Khong du quan de chieu bi. <<<\n";
+            break;
+        }
+
+        // Hòa do luật 50 nước
+        if (chessGame.Is_Draw_By_50_Moves())
+        {
+            std::cout << "Hòa do luật 50 nước";
             break;
         }
 
@@ -107,27 +119,55 @@ void gameManager::Game_Turn()
         }
 
         std::string moveStr;
-        std::cout << "Nhap nuoc di cua ban (vd: e2e4): ";
-        std::cin >> moveStr;
 
+        // Giả sử AI là phe Đen
+        if (currentMode == GameMode::PvE && chessGame.sideToMove == 'b')
+        {
+            std::cout << "AI dang suy nghi...\n";
+            // Lấy chuỗi FEN từ bàn cờ hiện tại
+            std::string currentFEN = chessGame.GetFen();
+            moveStr = ai.getBestMove(currentFEN);
+            std::cout << "AI di nuoc: " << moveStr << std::endl;
+        }
+        else
+        {
+            std::cout << "Nhap nuoc di cua ban (vd: e2e4) \n";
+            std::cout << "Neu muon di lai nhap Undo \n";
+            std::cout << "Khong cho di lai Redo \n";
+            std::cin >> moveStr;
+        }
+        if (to_lower(moveStr) == "undo")
+        {
+            if (chessGame.Undo())
+            {
+                chessGame.Undo();
+                chessGame.sideToMove = (chessGame.sideToMove == 'w') ? 'b' : 'w';
+                std::cout << "Da quay lai luot truoc cua ban.\n";
+            }
+            else
+                std::cout << "Chua the di lai\n";
+            continue;
+        }
+        else if (to_lower(moveStr) == "redo")
+        {
+            // Chỉ Redo được nếu trước đó đã Undo
+            if (chessGame.Redo())
+            {
+                chessGame.Redo();
+                std::cout << "Da thuc hien lai nuoc di vua xoa.\n";
+            }
+            else
+                std::cout << "Nguoi choi chua di lai\n";
+            continue;
+        }
         if (Is_Valid_Input(moveStr))
         {
+
             std::pair<int, int> start = convert_to_XY(moveStr.substr(0, 2));
             std::pair<int, int> dest = convert_to_XY(moveStr.substr(2, 2));
 
             // Thực hiện di chuyển và cập nhật trạng thái
             chessGame.Execute_Move(start.first, start.second, dest.first, dest.second);
-
-            // Hòa do 50 nước
-            if (Is_Draw_By_50_Moves())
-            {
-                chessGame.Display();
-                std::cout << "Hòa do luật 50 nước";
-                break;
-            }
-
-            // Logic đổi lượt người chơi
-            chessGame.sideToMove = (chessGame.sideToMove == 'w') ? 'b' : 'w';
         }
         else
         {
@@ -136,12 +176,4 @@ void gameManager::Game_Turn()
             std::cin.get();
         }
     }
-}
-
-// Hòa do 50 nước && halfmoveClock thay đổi trong Execute_Move() - file Board.cpp
-bool gameManager::Is_Draw_By_50_Moves()
-{
-    if (chessGame.halfmoveClock >= 100)
-        return true;
-    return false;
 }

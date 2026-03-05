@@ -3,15 +3,15 @@
     "tasks": [
         {
             "type": "cppbuild",
-            "label": "Build Chess Project",
-            "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
+            "label": "Build Chess Game",
+            "command": "g++",
             "args": [
-                "-fdiagnostics-color=always",
                 "-g",
-                "${workspaceFolder}/src/*.cpp",
-                "-I${workspaceFolder}/include",
+                "${workspaceFolder}\\src\\*.cpp",
+                "-I",
+                "${workspaceFolder}\\include",
                 "-o",
-                "${workspaceFolder}/chess_ai.exe"
+                "${workspaceFolder}\\ChessGame.exe"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -23,7 +23,7 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "detail": "Trình biên dịch gom tất cả file trong src và include."
+            "detail": "Biên dịch toàn bộ project cờ vua"
         }
     ]
 }
