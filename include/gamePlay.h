@@ -6,6 +6,10 @@
 #include "Utils.h" // Sử dụng các hàm chuyển đổi tọa độ
 #include <string>
 
+#include <future>
+#include <chrono>
+#include <thread>
+
 // PvP: 2 người, PvE: Chơi với AI
 enum class GameMode
 {
@@ -21,13 +25,14 @@ private:
     Color colorKing;
 
     GameMode currentMode; // Biến lưu chế độ hiện tại
+    int currentLevel;     // Biến lưu độ khó
 
 public:
     gameManager(); // Khởi tạo các giá trị mặc định
 
     // Nạp dữ liệu bàn cờ từ chuỗi FEN
 
-    void Init_Game(std::string FEN, GameMode mode);
+    void Init_Game(std::string FEN, GameMode mode, const int &aiLevel);
 
     // Kiểm tra tính hợp lệ của nước đi nhập từ bàn phím
     bool Is_Valid_Input(const std::string &moveStr);

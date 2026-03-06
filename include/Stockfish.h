@@ -68,6 +68,19 @@ public:
         }
     }
 
+    // Hàm cài đặt độ khó cho AI
+    void setSkillLevel(int level)
+    {
+        // level phải nằm trong khoảng từ 0 (dễ nhất) đến 20 (khó nhất)
+        if (level < 0)
+            level = 0;
+        if (level > 20)
+            level = 20;
+
+        // Gửi lệnh setoption của chuẩn UCI
+        sendCommand("setoption name Skill Level value " + std::to_string(level));
+    }
+
     ~Stockfish()
     {
         sendCommand("quit");

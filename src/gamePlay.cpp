@@ -3,10 +3,11 @@
 
 gameManager::gameManager() : rowKing(-1), colKing(-1), colorKing(Color::None) {}
 
-void gameManager::Init_Game(std::string FEN, GameMode mode)
+void gameManager::Init_Game(std::string FEN, GameMode mode, const int &aiLevel)
 {
     chessGame.Set_Up_Board(FEN); // Khởi tạo quân cờ lên grid
     currentMode = mode;
+    currentLevel = aiLevel;
 }
 
 bool gameManager::Is_Valid_Input(const std::string &moveStr)
@@ -64,6 +65,8 @@ void gameManager::Game_Turn()
     // Khởi tạo AI (đảm bảo đường dẫn tới file .exe chính xác)
     Stockfish ai("stockfish-windows-x86-64-avx2.exe");
 
+    // Set độ khó
+    ai.setSkillLevel(currentLevel);
     while (true)
     {
         // Cập nhật tọa độ Vua của phe hiện tại từ Board
@@ -127,12 +130,27 @@ void gameManager::Game_Turn()
         std::string moveStr;
 
         // Giả sử AI là phe Đen
+        // Giả sử AI là phe Đen
         if (currentMode == GameMode::PvE && chessGame.sideToMove == 'b')
         {
-            std::cout << "AI dang suy nghi...\n";
-            // Lấy chuỗi FEN từ bàn cờ hiện tại
+            std::cout << "AI dang suy nghi";
             std::string currentFEN = chessGame.GetFen();
-            moveStr = ai.getBestMove(currentFEN);
+
+            // Tạo một luồng bất đồng bộ (chạy ngầm) để gọi AI
+            // std::async sẽ đẩy việc gọi hàm getBestMove sang một luồng (thread) khác
+            std::future<std::string> futureMove = std::async(std::launch::async, [&ai, currentFEN]()
+                                                             { return ai.getBestMove(currentFEN); });
+
+            // Vòng lặp này giúp giao diện không bị đơ.
+            // Nó kiểm tra xem AI đã nghĩ xong chưa sau mỗi 100 mili-giây
+            while (futureMove.wait_for(std::chrono::milliseconds(100)) != std::future_status::ready)
+            {
+                // Trong lúc rảnh rỗi chờ AI, mình in ra các dấu chấm tạo hiệu ứng "loading..."
+                std::cout << "." << std::flush;
+            }
+            std::cout << "\n"; // Xuống dòng sau khi in xong hiệu ứng chấm chấm
+            // Lấy kết quả từ luồng chạy ngầm sau khi nó hoàn thành
+            moveStr = futureMove.get();
             std::cout << "AI di nuoc: " << moveStr << std::endl;
         }
         else

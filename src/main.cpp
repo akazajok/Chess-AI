@@ -1,4 +1,5 @@
 #include "../include/gamePlay.h"
+#include "Utils.h"
 
 int main()
 {
@@ -16,8 +17,36 @@ int main()
     std::cin >> choice;
 
     GameMode mode = (choice == 2) ? GameMode::PvE : GameMode::PvP;
+    int aiLevel = 5; // Mặc định là Trung bình
+    if (mode == GameMode::PvE)
+    {
+        std::cout << "\nChon do kho AI:\n";
+        std::cout << "1. De\n2. Trung binh\n3. Kho\n4. Dai kien tuong\n";
+        std::cout << "Lua chon cua ban: ";
+        int levelChoice;
+        std::cin >> levelChoice;
+        switch (levelChoice)
+        {
+        case 1:
+            aiLevel = 1;
+            break;
+        case 2:
+            aiLevel = 6;
+            break;
+        case 3:
+            aiLevel = 14;
+            break;
+        case 4:
+            aiLevel = 20;
+            break;
+        default:
+            aiLevel = 6;
+            break; // Xử lý nếu nhập sai
+        }
+    }
 
-    manager.Init_Game(defaultFEN, mode);
+    // Sau đó bạn cần sửa hàm Init_Game để truyền thêm biến aiLevel này vào
+    manager.Init_Game(defaultFEN, mode, aiLevel);
     manager.Game_Turn();
 
     return 0;

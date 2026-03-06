@@ -227,6 +227,7 @@ void Board::Execute_Move(const int &startRow, const int &startCol, const int &de
     // Đổi lượt người chơi
     sideToMove = (sideToMove == 'w') ? 'b' : 'w';
 }
+
 // Hàm cập nhật di chuyển quân cờ, ăn quân địch
 void Board::Update_Position(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
@@ -273,7 +274,6 @@ void Board::SaveMoveToHistory(int startRow, int startCol, int destRow, int destC
     // Đi rồi không còn redo nữa.
     ClearRedo();
 }
-
 bool Board::Undo()
 {
     if (currentIndex < 0 || moveHistory.empty() || currentIndex >= moveHistory.size())
@@ -312,7 +312,6 @@ bool Board::Undo()
     currentIndex--;
     return true;
 }
-
 bool Board::Redo()
 {
     if (redoHistory.empty())
@@ -363,7 +362,6 @@ void Board::ClearRedo()
 {
     redoHistory.clear();
 }
-
 //======================SPECIAL SECTION============================//
 bool Board::SpecialMove(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
@@ -429,7 +427,7 @@ void Board::ExecutePromotion(const int &startRow, const int &startCol, const int
 }
 Name Board::GetPromotionChoice()
 {
-    std::cout << "Phong Hậu! Chọn quân! Q/R/B/N" << std::endl;
+    std::cout << "Phong hau | Chon quan | Q/R/B/N" << std::endl;
     char choice;
     std::cin >> choice;
     choice = toupper(choice);
@@ -581,8 +579,6 @@ void Board::TrackPieceMovement(const int &startRow, const int &startCol)
     }
     UpdateCastlingRights();
 }
-
-//=======================================================//
 void Board::UpdateCastlingRights()
 {
     castlingRights = "";
@@ -599,8 +595,7 @@ void Board::UpdateCastlingRights()
     if (castlingRights.empty())
         castlingRights = "-";
 }
-//=======================================================//
-//----------------------Ăn tốt qua đường-------------------
+//=============================En Passant Func=========================
 bool Board::IsEnPassantMove(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
     Piece *pieceStart = Get_Piece_At(startRow, startCol);
