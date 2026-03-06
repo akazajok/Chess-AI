@@ -67,6 +67,7 @@ void gameManager::Game_Turn()
 
     // Set độ khó
     ai.setSkillLevel(currentLevel);
+
     while (true)
     {
         // Cập nhật tọa độ Vua của phe hiện tại từ Board
@@ -94,6 +95,7 @@ void gameManager::Game_Turn()
 
         chessGame.Display(); // Hiển thị bàn cờ ra console
         std::cout << chessGame.enPassantTarget << " " << chessGame.fullmoveNumber << '\n';
+        std::cout << "=> Danh gia the tran (Evaluation): " << ai.lastEvaluation << std::endl;
 
         std::cout << "\nLUOT CUA PHE: " << (chessGame.sideToMove == 'w' ? "TRANG [W]" : "DEN [B]") << "\n";
 
@@ -152,6 +154,7 @@ void gameManager::Game_Turn()
             // Lấy kết quả từ luồng chạy ngầm sau khi nó hoàn thành
             moveStr = futureMove.get();
             std::cout << "AI di nuoc: " << moveStr << std::endl;
+            std::cout << "=> Danh gia the tran (Evaluation): " << ai.lastEvaluation << std::endl;
         }
         else
         {

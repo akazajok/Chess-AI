@@ -42,9 +42,23 @@ public:
         WriteFile(hInWrite, command.c_str(), command.length(), &written, NULL);
     }
 
-    // Hàm lấy nước đi tốt nhất
+    // Thêm biến này để lưu điểm đánh giá
+    std::string lastEvaluation = "0.0";
+    // Hàm lấy nước đi tốt nhất && lấy điểm bàn cờ
     std::string getBestMove(std::string fen)
     {
+        // 1. Xác định phe nào đang đi bằng cách đọc ký tự lượt đi trong chuỗi FEN
+        // FEN luôn có cấu trúc: [vị_trí_quân] [lượt_đi_w_hoặc_b] [nhập_thành]...
+        bool isWhiteToMove = true;
+        size_t spacePos = fen.find(' ');
+        if (spacePos != std::string::npos && spacePos + 1 < fen.length())
+        {
+            if (fen[spacePos + 1] == 'b')
+            {
+                isWhiteToMove = false;
+            }
+        }
+
         sendCommand("position fen " + fen);
         sendCommand("go movetime 1000"); // AI suy nghĩ trong 1 giây
 
@@ -52,13 +66,65 @@ public:
         std::string output = "";
         DWORD read;
 
-        // Đọc output cho đến khi thấy "bestmove"
         while (true)
         {
             if (ReadFile(hOutRead, buffer, sizeof(buffer) - 1, &read, NULL) && read > 0)
             {
                 buffer[read] = '\0';
                 output += buffer;
+
+                // --- BÓC TÁCH ĐIỂM SỐ THEO CHUẨN QUỐC TẾ ---
+                size_t cpPos = output.rfind("score cp ");
+                if (cpPos != std::string::npos)
+                {
+                    size_t endPos = output.find(' ', cpPos + 9);
+                    if (endPos != std::string::npos)
+                    {
+                        try
+                        {
+                            int cp = std::stoi(output.substr(cpPos + 9, endPos - (cpPos + 9)));
+
+                            // ĐẢO DẤU NẾU LÀ PHE ĐEN ĐANG ĐI
+                            if (!isWhiteToMove)
+                                cp = -cp;
+
+                            float score = cp / 100.0f;
+                            lastEvaluation = (score > 0 ? "+" : "") + std::to_string(score);
+
+                            // Xóa số 0 thừa phía sau
+                            lastEvaluation.erase(lastEvaluation.find_last_not_of('0') + 1, std::string::npos);
+                            if (lastEvaluation.back() == '.')
+                                lastEvaluation.pop_back();
+                        }
+                        catch (...)
+                        {
+                        }
+                    }
+                }
+
+                size_t matePos = output.rfind("score mate ");
+                if (matePos != std::string::npos)
+                {
+                    size_t endPos = output.find(' ', matePos + 11);
+                    if (endPos != std::string::npos)
+                    {
+                        try
+                        {
+                            int mateIn = std::stoi(output.substr(matePos + 11, endPos - (matePos + 11)));
+
+                            // ĐẢO DẤU MATE NẾU LÀ PHE ĐEN ĐANG ĐI
+                            if (!isWhiteToMove)
+                                mateIn = -mateIn;
+
+                            lastEvaluation = (mateIn > 0 ? "+M" : "-M") + std::to_string(std::abs(mateIn));
+                        }
+                        catch (...)
+                        {
+                        }
+                    }
+                }
+                // ----------------------------------------
+
                 size_t pos = output.find("bestmove ");
                 if (pos != std::string::npos)
                 {
