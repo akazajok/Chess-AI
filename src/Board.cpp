@@ -127,11 +127,21 @@ std::string Board::GetFen()
         if (row < 7)
             fen += "/";
     }
-    fen += " " + sideToMove;
-    fen += " " + castlingRights;
-    fen += " " + enPassantTarget;
-    fen += " " + std::to_string(halfmoveClock);
-    fen += " " + std::to_string(fullmoveNumber);
+    fen += " ";
+    fen += sideToMove;
+
+    fen += " ";
+    fen += castlingRights;
+
+    fen += " ";
+    fen += enPassantTarget;
+
+    fen += " ";
+    fen += std::to_string(halfmoveClock);
+
+    fen += " ";
+
+    fen += std::to_string(fullmoveNumber);
 
     return fen;
 }
@@ -685,21 +695,23 @@ Piece *Board::Get_Checking_Piece(const int &rowKing, const int &colKing, const C
         nameCheck = piece->Get_Name();
         if (nameCheck == Name::Queen || nameCheck == Name::Bishop)
         {
+            std::cout << "Bố ở đây 1" << '\n';
             cntCheck++;
             pieceCheck = piece;
         }
         else if (nameCheck == Name::King && piece->Is_Valid_Move(rowKing, colKing, *this))
         {
+            std::cout << "Bố ở đây 2" << '\n';
             cntCheck++;
             pieceCheck = piece;
         }
         else if (nameCheck == Name::Pawn && piece->Is_Valid_Move(rowKing, colKing, *this))
         {
+            std::cout << "Bố ở đây 3" << '\n';
             cntCheck++;
             pieceCheck = piece;
         }
         if (cntCheck > 1)
-
             return pieceCheck;
     }
     // Lấy tọa độ theo đường đi thẳng, ngang của quân địch ( Hậu, Vua, Xe )
@@ -721,11 +733,13 @@ Piece *Board::Get_Checking_Piece(const int &rowKing, const int &colKing, const C
         nameCheck = piece->Get_Name();
         if (nameCheck == Name::Queen || nameCheck == Name::Rook)
         {
+            std::cout << "Bố ở đây 4" << '\n';
             cntCheck++;
             pieceCheck = piece;
         }
         else if (nameCheck == Name::King && piece->Is_Valid_Move(rowKing, colKing, *this))
         {
+            std::cout << "Bố ở đây 5" << '\n';
             cntCheck++;
             pieceCheck = piece;
         }
@@ -751,6 +765,7 @@ Piece *Board::Get_Checking_Piece(const int &rowKing, const int &colKing, const C
         nameCheck = piece->Get_Name();
         if (nameCheck == Name::Knight)
         {
+            std::cout << "Bố ở đây 6" << '\n';
             cntCheck++;
             pieceCheck = piece;
         }
@@ -834,7 +849,9 @@ bool Board::Is_Safe_Move(const Piece *piece, const int &destRow, const int &dest
     // 2. Thực hiện di chuyển giả định
     std::unique_ptr<Piece> capturedPiece = std::move(grid[destRow][destCol]);
     Update_Position(pos.first, pos.second, destRow, destCol);
-
+    std::cout << "------------------------------------------------------------------------------------\n";
+    Display();
+    std::cout << "----------------------------------------------------------------------------------\n";
     // 3. Kiểm tra an toàn
     Piece *checkingPiece = Get_Checking_Piece(rowKing, colKing, colorKing);
     if (checkingPiece)

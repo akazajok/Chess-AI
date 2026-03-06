@@ -4,7 +4,7 @@
 int main()
 {
     // Chuỗi FEN khởi tạo bàn cờ mặc định
-    std::string defaultFEN = "4k3/8/8/P7/1R6/8/1K3p2/8 b - - 0 1";
+    std::string defaultFEN = "4n3/2K5/P3k3/8/1B6/8/8/8 w - - 0 1";
 
     gameManager manager;
 
@@ -17,7 +17,7 @@ int main()
     std::cin >> choice;
 
     GameMode mode = (choice == 2) ? GameMode::PvE : GameMode::PvP;
-    int aiLevel = 5; // Mặc định là Trung bình
+    int aiLevel = 20; // Mặc định là Đại kiện tướng
     if (mode == GameMode::PvE)
     {
         std::cout << "\nChon do kho AI:\n";
