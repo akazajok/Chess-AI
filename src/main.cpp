@@ -3,13 +3,13 @@
 int main()
 {
     // Chuỗi FEN khởi tạo bàn cờ mặc định
-    std::string defaultFEN = "2k5/3r2p1/5n2/8/8/2Q5/8/1K2N3 w - - 0 1";
+    std::string defaultFEN = "8/P2r2pk/5n2/8/8/2Q5/8/1K2N3 w - - 0 1";
 
     gameManager manager;
 
     std::cout << "=== CHAO MUNG DEN VOI CHESS AI ===\n";
     std::cout << "1. Choi voi ban be (PvP)\n";
-    std::cout << "2. Choi với AI (PvE)\n";
+    std::cout << "2. Choi voi AI (PvE)\n";
     std::cout << "Chon che do (1/2): ";
 
     int choice;

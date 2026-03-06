@@ -104,7 +104,7 @@ void gameManager::Game_Turn()
         // Hòa do luật 50 nước
         if (chessGame.Is_Draw_By_50_Moves())
         {
-            std::cout << "Hòa do luật 50 nước";
+            std::cout << "Hoa do luat 50 nuoc";
             break;
         }
 
@@ -120,7 +120,7 @@ void gameManager::Game_Turn()
         }
         else if (!chessGame.Has_Legal_Moves(colorKing))
         {
-            std::cout << "Hòa do không còn nước đi hợp lệ";
+            std::cout << "Hoa do khong con nuoc di hop le";
             break;
         }
 
@@ -146,12 +146,14 @@ void gameManager::Game_Turn()
         {
             if (chessGame.Undo())
             {
-                chessGame.sideToMove = (chessGame.sideToMove == 'w') ? 'b' : 'w';
+                if (currentMode == GameMode::PvE)
+                    chessGame.Undo();
+                else
+                    chessGame.sideToMove = (chessGame.sideToMove == 'w') ? 'b' : 'w';
                 std::cout << "Da quay lai luot truoc cua ban.\n";
             }
             else
                 std::cout << "Chua the di lai\n";
-            continue;
         }
         else if (to_lower(moveStr) == "redo")
         {
@@ -163,9 +165,8 @@ void gameManager::Game_Turn()
             }
             else
                 std::cout << "Nguoi choi chua di lai\n";
-            continue;
         }
-        if (Is_Valid_Input(moveStr))
+        else if (Is_Valid_Input(moveStr))
         {
 
             std::pair<int, int> start = convert_to_XY(moveStr.substr(0, 2));
