@@ -695,19 +695,16 @@ Piece *Board::Get_Checking_Piece(const int &rowKing, const int &colKing, const C
         nameCheck = piece->Get_Name();
         if (nameCheck == Name::Queen || nameCheck == Name::Bishop)
         {
-            std::cout << "Bố ở đây 1" << '\n';
             cntCheck++;
             pieceCheck = piece;
         }
         else if (nameCheck == Name::King && piece->Is_Valid_Move(rowKing, colKing, *this))
         {
-            std::cout << "Bố ở đây 2" << '\n';
             cntCheck++;
             pieceCheck = piece;
         }
         else if (nameCheck == Name::Pawn && piece->Is_Valid_Move(rowKing, colKing, *this))
         {
-            std::cout << "Bố ở đây 3" << '\n';
             cntCheck++;
             pieceCheck = piece;
         }
@@ -733,13 +730,11 @@ Piece *Board::Get_Checking_Piece(const int &rowKing, const int &colKing, const C
         nameCheck = piece->Get_Name();
         if (nameCheck == Name::Queen || nameCheck == Name::Rook)
         {
-            std::cout << "Bố ở đây 4" << '\n';
             cntCheck++;
             pieceCheck = piece;
         }
         else if (nameCheck == Name::King && piece->Is_Valid_Move(rowKing, colKing, *this))
         {
-            std::cout << "Bố ở đây 5" << '\n';
             cntCheck++;
             pieceCheck = piece;
         }
@@ -765,7 +760,6 @@ Piece *Board::Get_Checking_Piece(const int &rowKing, const int &colKing, const C
         nameCheck = piece->Get_Name();
         if (nameCheck == Name::Knight)
         {
-            std::cout << "Bố ở đây 6" << '\n';
             cntCheck++;
             pieceCheck = piece;
         }
@@ -849,9 +843,7 @@ bool Board::Is_Safe_Move(const Piece *piece, const int &destRow, const int &dest
     // 2. Thực hiện di chuyển giả định
     std::unique_ptr<Piece> capturedPiece = std::move(grid[destRow][destCol]);
     Update_Position(pos.first, pos.second, destRow, destCol);
-    std::cout << "------------------------------------------------------------------------------------\n";
-    Display();
-    std::cout << "----------------------------------------------------------------------------------\n";
+
     // 3. Kiểm tra an toàn
     Piece *checkingPiece = Get_Checking_Piece(rowKing, colKing, colorKing);
     if (checkingPiece)
