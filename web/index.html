@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess AI</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app">
+        <!-- Left Panel -->
+        <div class="side-panel left-panel">
+            <div class="captured-pieces" id="captured-black">
+                <h3>Captured by White</h3>
+                <div class="captured-list" id="captured-black-list"></div>
+                <div class="score-diff" id="score-white"></div>
+            </div>
+
+            <!-- Game Mode -->
+            <div class="game-mode-panel">
+                <h3>Game Mode</h3>
+                <div class="mode-btns">
+                    <button class="btn mode-btn active" id="pvp-btn" data-mode="pvp">👥 PvP</button>
+                    <button class="btn mode-btn" id="pve-btn" data-mode="pve">🤖 vs AI</button>
+                </div>
+                <div class="ai-settings" id="ai-settings" style="display:none;">
+                    <label>AI Depth: <span id="depth-label">10</span></label>
+                    <input type="range" id="ai-depth" min="1" max="20" value="10">
+                    <div class="ai-color-select">
+                        <label>Play as:</label>
+                        <button class="btn btn-sm active" id="play-white-btn">♔ White</button>
+                        <button class="btn btn-sm" id="play-black-btn">♚ Black</button>
+                    </div>
+                    <div class="ai-status" id="ai-status"></div>
+                </div>
+            </div>
+
+            <!-- Timer Setting -->
+            <div class="timer-setting-panel">
+                <h3>Timer</h3>
+                <select id="timer-select">
+                    <option value="0">No Timer</option>
+                    <option value="60">1 min</option>
+                    <option value="180">3 min</option>
+                    <option value="300" selected>5 min</option>
+                    <option value="600">10 min</option>
+                    <option value="900">15 min</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Center: Board -->
+        <div class="center">
+            <div class="top-bar">
+                <div class="player-info" id="top-player">
+                    <div class="player-dot black-dot" id="top-dot"></div>
+                    <span id="top-name">Black</span>
+                    <div class="timer" id="top-timer">5:00</div>
+                </div>
+            </div>
+
+            <div class="board-wrapper">
+                <div class="row-labels" id="row-labels"></div>
+                <div class="board-container">
+                    <div class="chess-board" id="chess-board"></div>
+                    <div class="col-labels" id="col-labels"></div>
+                </div>
+            </div>
+
+            <div class="bottom-bar">
+                <div class="player-info active" id="bottom-player">
+                    <div class="player-dot white-dot" id="bottom-dot"></div>
+                    <span id="bottom-name">White</span>
+                    <div class="timer" id="bottom-timer">5:00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="side-panel right-panel">
+            <div class="game-controls">
+                <h3>Controls</h3>
+                <div class="btn-group">
+                    <button class="btn" id="undo-btn" title="Undo (Ctrl+Z)">↩ Undo</button>
+                    <button class="btn" id="redo-btn" title="Redo (Ctrl+Y)">↪ Redo</button>
+                </div>
+                <button class="btn btn-new" id="new-game-btn">★ New Game</button>
+                <button class="btn btn-flip" id="flip-btn">⇅ Flip Board</button>
+            </div>
+
+            <div class="move-history-panel">
+                <h3>Moves</h3>
+                <div class="move-list" id="move-list"></div>
+            </div>
+
+            <div class="game-status-panel">
+                <div class="status-text" id="game-status">White to move</div>
+            </div>
+
+            <div class="captured-pieces" id="captured-white">
+                <h3>Captured by Black</h3>
+                <div class="captured-list" id="captured-white-list"></div>
+                <div class="score-diff" id="score-black"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Promotion Modal -->
+    <div class="modal-overlay" id="promotion-modal">
+        <div class="modal promotion-modal">
+            <h3>Choose Promotion</h3>
+            <div class="promotion-choices" id="promotion-choices"></div>
+        </div>
+    </div>
+
+    <!-- Stockfish loaded as Worker in chess.js -->
+    <script src="js/chess.js"></script>
+</body>
+</html>
