@@ -616,7 +616,7 @@ bool Board::IsEnPassantMove(const int &startRow, const int &startCol, const int 
         return false;
 
     // Phải là quân ăn chéo
-    if (std::abs(startCol - destCol) != 1)
+    if (std::abs(startCol - destCol) != 1 || std::abs(startRow - destRow) != 1)
         return false;
     std::string result = convert_from_XY(destRow, destCol);
     if (enPassantTarget != result)

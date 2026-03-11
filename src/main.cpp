@@ -1,10 +1,9 @@
 #include "../include/gamePlay.h"
-#include "Utils.h"
 
 int main()
 {
     // Chuỗi FEN khởi tạo bàn cờ mặc định
-    std::string defaultFEN = "4n3/2K5/P3k3/8/1B6/8/8/8 w - - 0 1";
+    std::string defaultFEN = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1";
 
     gameManager manager;
 
