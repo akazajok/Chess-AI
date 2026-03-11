@@ -2,7 +2,9 @@
 #define UTILS_H
 
 #include "../include/Piece.h"
+#include <iostream>
 #include <string>
+#include <stdio.h>
 #include <utility> // Thư viện chứa pair
 #include <cctype>  // Thư viện chứa hàm tolower
 
@@ -12,5 +14,7 @@ void updatePosition(std::string board[8][8], std::string move);
 bool isValidMoveFormat(std::string move);
 
 std::string to_lower(std::string s);
+
+std::string getFenFromImage(const std::string &imageUrl);
 
 #endif

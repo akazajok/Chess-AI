@@ -45,3 +45,47 @@ std::string to_lower(std::string s)
         c = std::tolower((unsigned char)c);
     return s;
 }
+
+std::string getFenFromImage(const std::string &imageUrl)
+{
+    // Trỏ chính xác đến python.exe trong môi trường ảo (.venv) của bạn
+    // và trỏ đến file test.py
+    std::string pythonPath = "F:\\Chess-AI\\.venv\\Scripts\\python.exe";
+    std::string scriptPath = "F:\\Chess-AI\\chessboard2fen\\test.py";
+
+    // Ghép lệnh command line
+    std::string command = pythonPath + " " + scriptPath + " \"" + imageUrl + "\"";
+
+    std::string result = "";
+    char buffer[128];
+
+    // Mở pipe để chạy lệnh và đọc luồng đầu ra (Standard Output)
+    FILE *pipe = _popen(command.c_str(), "r");
+    if (!pipe)
+    {
+        std::cerr << "Khong the khoi tao tien trinh Python!" << std::endl;
+        return "";
+    }
+
+    // Đọc kết quả Python in ra
+    while (fgets(buffer, sizeof(buffer), pipe) != NULL)
+    {
+        result += buffer;
+    }
+    _pclose(pipe);
+
+    // Tìm chuỗi FEN từ kết quả trả về (Lọc theo tag FEN_RESULT: đã thiết lập ở Python)
+    size_t pos = result.find("FEN_RESULT:");
+    if (pos != std::string::npos)
+    {
+        // Cắt bỏ phần tag, chỉ lấy chuỗi FEN chuẩn
+        std::string fen = result.substr(pos + 11);
+
+        // Xóa các ký tự xuống dòng (newline) thừa ở cuối chuỗi nếu có
+        fen.erase(fen.find_last_not_of(" \n\r\t") + 1);
+        return fen;
+    }
+
+    std::cerr << "Loi tu Python: " << result << std::endl;
+    return "";
+}

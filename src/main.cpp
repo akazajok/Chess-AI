@@ -44,6 +44,15 @@ int main()
         }
     }
 
+    std::string compe;
+    std::cout << "Ban co muon choi ban co cua rieng minh ?\n";
+    std::cout << "yes/no\n";
+    std::cin >> compe;
+    if (to_lower(compe) == "yes")
+    {
+        std::cout << "Nhap URL hinh anh\n";
+        std::cin >> defaultFEN;
+    }
     // Sau đó bạn cần sửa hàm Init_Game để truyền thêm biến aiLevel này vào
     manager.Init_Game(defaultFEN, mode, aiLevel);
     manager.Game_Turn();
