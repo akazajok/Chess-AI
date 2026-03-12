@@ -6,6 +6,9 @@ import cv2
 os.environ["TF_USE_LEGACY_KERAS"] = "1"
 from boardDetection import ChessboardDetector
 
+# Lấy đường dẫn tuyệt đối của thư mục chứa file test.py này
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # Từ điển dịch mã quân cờ từ tiếng Đức của tác giả sang ký hiệu FEN chuẩn
 FEN_MAP = {
     0: 'p', 1: 'P',   # Bauer (Tốt)
@@ -57,6 +60,17 @@ def url_to_image(url):
     image = cv2.imdecode(image, cv2.IMREAD_COLOR)
     return image
 
+def load_image(source):
+    """Kiem tra nguon la URL hay file cuc bo"""
+    # Neu bat dau bang http thi la URL
+    if source.startswith(('http://', 'https://')):
+        return url_to_image(source)
+    else:
+        # Neu la duong dan file trong may
+        # Dung numpy de doc de tranh loi voi duong dan co dau tieng Viet
+        img = cv2.imdecode(np.fromfile(source, dtype=np.uint8), cv2.IMREAD_COLOR)
+        return img
+
 def main():
     # Kiểm tra xem có URL được truyền vào từ C++ không
     if len(sys.argv) < 2:
@@ -66,8 +80,11 @@ def main():
     image_url = sys.argv[1]
     
     try:
-        detector = ChessboardDetector("models/detection", "models/classification.h5")
-        img = url_to_image(image_url)
+        detect_path = os.path.join(BASE_DIR, "models", "detection")
+        class_path = os.path.join(BASE_DIR, "models", "classification.h5")
+        
+        detector = ChessboardDetector(detect_path, class_path)
+        img = load_image(image_url)
         
         if img is None:
             print("LỖI: Không thể tải hoặc đọc ảnh từ URL này.")
@@ -86,7 +103,7 @@ def main():
         print(f"FEN_RESULT:{final_fen}")
         
     except Exception as e:
-        print(f"LỖI: {str(e)}")
-
+        print(f"PYTHON_ERROR: {str(e)}")
+        
 if __name__ == "__main__":
     main()

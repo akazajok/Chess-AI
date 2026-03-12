@@ -44,17 +44,21 @@ int main()
         }
     }
 
-    std::string compe;
-    std::cout << "Ban co muon choi ban co cua rieng minh ?\n";
-    std::cout << "yes/no\n";
-    std::cin >> compe;
-    if (to_lower(compe) == "yes")
-    {
-        std::string ImageUrl;
-        std::cout << "Nhap URL hinh anh\n";
-        std::cin >> ImageUrl;
-        defaultFEN = getFenFromImage(ImageUrl);
-    }
+    // std::string compe;
+    // std::cout << "Ban co muon choi ban co cua rieng minh ?\n";
+    // std::cout << "yes/no\n";
+    // std::cin >> compe;
+    // if (to_lower(compe) == "yes")
+    // {
+    //     std::string path;
+    //     std::cout << "Nhap duong dan hinh anh (vi du: D:/chess/test.jpg):\n";
+    //     // Dung std::getline de tranh loi neu duong dan co dau cach
+    //     std::cin.ignore();
+    //     std::getline(std::cin, path);
+
+    //     // Ham getFenFromImage trong Utils.cpp se nhan path nay
+    //     defaultFEN = getFenFromImage(path);
+    // }
 
     // Sau đó bạn cần sửa hàm Init_Game để truyền thêm biến aiLevel này vào
     manager.Init_Game(defaultFEN, mode, aiLevel);
