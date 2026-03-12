@@ -1,47 +1,58 @@
-/* ====== RESET & BASE ======
+/* ====== RESET & CÀI ĐẶT CƠ BẢN ====== */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    /* Đảm bảo padding không làm thay đổi kích thước phần tử */
 }
 
 body {
     background: #1a1a2e;
+    /* Màu nền tổng thể của toàn bộ trang web (màu xanh đen tối) */
     font-family: 'Inter', sans-serif;
+    /* Font chữ mặc định */
     color: #e0e0e0;
+    /* Màu chữ mặc định (trắng xám) */
     min-height: 100vh;
     display: flex;
     justify-content: center;
+    /* Căn giữa toàn bộ nội dung theo chiều ngang */
     align-items: center;
+    /* Căn giữa toàn bộ nội dung theo chiều dọc */
     overflow: hidden;
+    /* Ẩn thanh cuộn trang */
 }
 
-/* ====== APP LAYOUT ====== */
+/* ====== KHUNG ỨNG DỤNG (APP LAYOUT) ====== */
 .app {
     display: flex;
     gap: 24px;
+    /* Khoảng cách giữa 3 khu vực: Panel trái, Bàn cờ, Panel phải */
     align-items: stretch;
     padding: 20px;
     max-height: 100vh;
 }
 
-/* ====== SIDE PANELS ====== */
+/* ====== BẢNG ĐIỀU KHIỂN 2 BÊN (SIDE PANELS) ====== */
 .side-panel {
     width: 220px;
     display: flex;
     flex-direction: column;
     gap: 16px;
+    /* Khoảng cách giữa các ô nhỏ trong panel */
 }
 
 .side-panel h3 {
     font-size: 13px;
     text-transform: uppercase;
+    /* Chữ in hoa */
     letter-spacing: 1.5px;
     color: #888;
+    /* Màu chữ tiêu đề (ví dụ: "Captured by White") */
     margin-bottom: 8px;
 }
 
-/* ====== CENTER (Board) ====== */
+/* ====== KHU VỰC TRUNG TÂM (CENTER) ====== */
 .center {
     display: flex;
     flex-direction: column;
@@ -49,7 +60,7 @@ body {
     gap: 8px;
 }
 
-/* ====== PLAYER INFO ====== */
+/* ====== THÔNG TIN NGƯỜI CHƠI ====== */
 .top-bar,
 .bottom-bar {
     width: 100%;
@@ -61,6 +72,7 @@ body {
     gap: 10px;
     padding: 10px 16px;
     background: #16213e;
+    /* Màu nền ô chứa tên người chơi lúc bình thường */
     border-radius: 10px;
     font-weight: 600;
     font-size: 14px;
@@ -68,10 +80,13 @@ body {
 }
 
 .player-info.active {
+    /* Đổi màu ở đây để làm nổi bật người chơi ĐANG ĐẾN LƯỢT ĐI */
     background: #1a3a5c;
     box-shadow: 0 0 12px rgba(100, 200, 255, 0.15);
+    /* Hiệu ứng tỏa sáng nhẹ */
 }
 
+/* Dấu chấm nhỏ hiển thị màu quân (Trắng/Đen) cạnh tên người chơi */
 .player-dot {
     width: 12px;
     height: 12px;
@@ -88,6 +103,7 @@ body {
     border: 2px solid #666;
 }
 
+/* Đồng hồ đếm ngược */
 .timer {
     margin-left: auto;
     font-family: 'Courier New', monospace;
@@ -95,17 +111,19 @@ body {
     font-weight: 700;
     color: #aaa;
     background: #0f1a30;
+    /* Màu nền của cái đồng hồ */
     padding: 4px 10px;
     border-radius: 6px;
 }
 
-/* ====== BOARD ====== */
+/* ====== KHU VỰC BÀN CỜ ====== */
 .board-wrapper {
     display: flex;
     gap: 4px;
     align-items: flex-start;
 }
 
+/* Cột số 1-8 và Hàng chữ a-h */
 .row-labels {
     display: flex;
     flex-direction: column;
@@ -145,16 +163,21 @@ body {
     text-align: center;
 }
 
+/* Bàn cờ chính */
 .chess-board {
     display: grid;
+    /* Sử dụng Grid để chia lưới */
     grid-template-columns: repeat(8, 70px);
+    /* 8 cột, mỗi cột 70px */
     grid-template-rows: repeat(8, 70px);
+    /* 8 hàng, mỗi hàng 70px */
     border-radius: 6px;
     overflow: hidden;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    /* Đổ bóng cho nguyên bàn cờ */
 }
 
-/* ====== SQUARES ====== */
+/* ====== CÁC Ô TRÊN BÀN CỜ (SQUARES) ====== */
 .square {
     width: 70px;
     height: 70px;
@@ -162,74 +185,87 @@ body {
     justify-content: center;
     align-items: center;
     cursor: pointer;
+    /* Biến con trỏ chuột thành hình bàn tay khi chỉ vào ô */
     position: relative;
     transition: background-color 0.15s;
     user-select: none;
+    /* Không cho phép bôi đen chọn text */
 }
 
+/* >>>>> THAY ĐỔI MÀU Ô CỜ SÁNG / TỐI Ở ĐÂY <<<<< */
 .square.light {
     background-color: #ecd8b8;
 }
 
+/* Màu ô sáng (vàng nhạt) */
 .square.dark {
     background-color: #ae8a68;
 }
 
-/* ====== PIECES (Unicode) ====== */
+/* Màu ô tối (nâu) */
+
+/* ====== QUÂN CỜ ====== */
 .piece {
     font-size: 44px;
+    /* Chỉnh kích thước quân cờ to nhỏ ở đây */
     line-height: 1;
     pointer-events: none;
+    /* Click xuyên qua hình quân cờ xuống ô vuông */
     z-index: 2;
     filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.4));
+    /* Đổ bóng cho quân cờ */
     transition: transform 0.1s;
 }
 
-/* ====== SQUARE STATES ====== */
+/* ====== TRẠNG THÁI CÁC Ô CỜ (SQUARE STATES) ====== */
 
-/* Selected */
+/* Ô đang được click chọn */
 .square.selected {
     background-color: #f6f682 !important;
 }
 
-/* Last move */
+/* Màu vàng chanh */
+
+/* Ô thể hiện nước đi vừa mới đi xong */
 .square.last-move {
     background-color: rgba(255, 255, 100, 0.4) !important;
 }
 
-/* Valid move dot */
+/* Chấm tròn hiển thị những ô có thể di chuyển tới hợp lệ */
 .square.valid-move::after {
     content: '';
     width: 18px;
     height: 18px;
     background-color: rgba(0, 0, 0, 0.2);
+    /* Dấu chấm đen mờ */
     border-radius: 50%;
     position: absolute;
     z-index: 1;
 }
 
-/* Valid capture ring */
+/* Vòng tròn hiển thị những ô có thể ĐÁNH/ĂN QUÂN */
 .square.valid-capture::after {
     content: '';
     width: 62px;
     height: 62px;
     border: 5px solid rgba(0, 0, 0, 0.2);
+    /* Viền tròn mờ */
     border-radius: 50%;
     position: absolute;
     z-index: 1;
 }
 
-/* King in check */
+/* Ô Vua bị chiếu đỏ */
 .square.in-check {
     background: radial-gradient(circle, #ff0000 0%, #ff4444 40%, transparent 70%) !important;
 }
 
-/* Hover */
+/* Hiệu ứng sáng lên một chút khi di chuột qua ô cờ */
 .square:hover {
     filter: brightness(1.08);
 }
 
-/* ====== CONTROLS ====== */
+/* ====== KHU VỰC NÚT BẤM (CONTROLS) ====== */
 .game-controls {
     background: #16213e;
     padding: 16px;
@@ -242,55 +278,71 @@ body {
     margin-bottom: 8px;
 }
 
+/* CSS TỔNG QUÁT CHO MỌI NÚT BẤM (Undo, Redo, PvP, vs AI...) */
 .btn {
     flex: 1;
     padding: 10px 14px;
     border: none;
     border-radius: 8px;
     background: #0f3460;
+    /* Màu nền mặc định của nút (Xanh lam đậm) */
     color: #e0e0e0;
+    /* Màu chữ của nút */
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
+    /* Chuyển màu mượt khi hover */
     font-family: 'Inter', sans-serif;
 }
 
+/* Thay đổi màu NÚT KHI DI CHUỘT VÀO (Hover) */
 .btn:hover {
     background: #1a5276;
+    /* Sáng hơn màu mặc định một chút */
     transform: translateY(-1px);
+    /* Hiệu ứng nảy nút lên nhẹ */
 }
 
 .btn:active {
     transform: translateY(0);
 }
 
+/* Ấn xuống thì nút lún lại */
 .btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
     transform: none;
 }
 
+/* Nút khi bị vô hiệu hóa (không bấm được) */
+
+/* NÚT TẠO GAME MỚI (NEW GAME) */
 .btn-new {
     width: 100%;
     background: #1e6f3f;
     margin-bottom: 8px;
 }
 
+/* Màu xanh lá */
 .btn-new:hover {
     background: #27ae60;
 }
 
+/* Xanh lá sáng hơn khi hover */
+
+/* NÚT LẬT BÀN CỜ (FLIP BOARD) */
 .btn-flip {
     width: 100%;
     background: #4a3560;
 }
 
+/* Màu tím đậm */
 .btn-flip:hover {
     background: #6c3483;
 }
 
-/* ====== MOVE HISTORY ====== */
+/* ====== LỊCH SỬ NƯỚC ĐI (MOVE HISTORY) ====== */
 .move-history-panel {
     background: #16213e;
     padding: 16px;
@@ -308,6 +360,7 @@ body {
     color: #bbb;
 }
 
+/* Thanh cuộn của danh sách nước đi */
 .move-list::-webkit-scrollbar {
     width: 6px;
 }
@@ -328,6 +381,7 @@ body {
     background: #1a3050;
 }
 
+/* Màu nền khi di chuột vào 1 dòng lịch sử */
 .move-number {
     color: #555;
     min-width: 28px;
@@ -338,7 +392,7 @@ body {
     min-width: 70px;
 }
 
-/* ====== GAME STATUS ====== */
+/* ====== TRẠNG THÁI GAME (GAME STATUS - Báo chiếu, hết giờ) ====== */
 .game-status-panel {
     background: #16213e;
     padding: 12px 16px;
@@ -356,18 +410,22 @@ body {
     color: #ff6b6b;
 }
 
+/* Bị chiếu cờ: Chữ màu cam/đỏ nhạt */
 .status-text.checkmate {
     color: #ff4444;
     font-size: 16px;
 }
 
+/* Chiếu bí/Hết giờ: Chữ đỏ đậm */
 .status-text.draw {
     color: #f1c40f;
 }
 
-/* ====== CAPTURED PIECES ====== */
+/* Hòa cờ: Chữ màu vàng */
+
+/* ====== KHU VỰC HIỂN THỊ QUÂN BỊ ĂN (CAPTURED PIECES) ====== */
 .captured-pieces {
-    background: #16213e;
+    background: #d26565;
     padding: 16px;
     border-radius: 10px;
 }
@@ -380,27 +438,32 @@ body {
     min-height: 30px;
 }
 
-/* ====== PROMOTION MODAL ====== */
+/* ====== HỘP THOẠI PHONG CẤP TỐT (PROMOTION MODAL) ====== */
 .modal-overlay {
     display: none;
+    /* Mặc định là ẩn */
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.7);
+    /* Màn hình tối đi ở phía sau */
     z-index: 100;
     justify-content: center;
     align-items: center;
     backdrop-filter: blur(4px);
+    /* Làm mờ cảnh đằng sau */
 }
 
 .modal-overlay.active {
     display: flex;
 }
 
+/* Hiện lên khi có class active */
 .modal {
     background: linear-gradient(145deg, #1a1a2e, #16213e);
+    /* Background chuyển màu của hộp thoại */
     border: 2px solid #444;
     border-radius: 20px;
     padding: 28px 32px;
@@ -428,6 +491,7 @@ body {
     letter-spacing: 0.5px;
 }
 
+/* Khối các ô chọn quân để phong cấp (Hậu, Xe, Mã, Tượng) */
 .promotion-choices {
     display: flex;
     gap: 14px;
@@ -464,7 +528,7 @@ body {
     text-transform: uppercase;
 }
 
-/* ====== GAME MODE PANEL ====== */
+/* ====== KHU VỰC CÀI ĐẶT CHẾ ĐỘ CHƠI (GAME MODE PANEL) ====== */
 .game-mode-panel {
     background: #16213e;
     padding: 16px;
@@ -482,6 +546,7 @@ body {
     padding: 8px 12px !important;
 }
 
+/* Màu nút chế độ (PvP/vs AI) ĐANG ĐƯỢC CHỌN */
 .mode-btn.active {
     background: #1a5276 !important;
     box-shadow: 0 0 8px rgba(100, 200, 255, 0.2);
@@ -500,10 +565,12 @@ body {
     margin-bottom: 6px;
 }
 
+/* Thanh kéo độ sâu AI (Range) */
 .ai-settings input[type="range"] {
     width: 100%;
     margin-bottom: 10px;
     accent-color: #4fc3f7;
+    /* Màu xanh của thanh kéo */
 }
 
 .ai-color-select {
@@ -518,6 +585,7 @@ body {
     white-space: nowrap;
 }
 
+/* Các nút nhỏ (Chọn cầm Trắng/Đen) */
 .btn-sm {
     padding: 5px 10px !important;
     font-size: 11px !important;
@@ -527,6 +595,7 @@ body {
     background: #1a5276 !important;
 }
 
+/* Nút nhỏ đang được chọn */
 .ai-status {
     font-size: 12px;
     color: #4fc3f7;
@@ -534,7 +603,7 @@ body {
     margin-top: 4px;
 }
 
-/* ====== TIMER SETTING ====== */
+/* ====== KHU VỰC CHỌN THỜI GIAN (TIMER SETTING) ====== */
 .timer-setting-panel {
     background: #16213e;
     padding: 16px;
@@ -553,7 +622,7 @@ body {
     cursor: pointer;
 }
 
-/* Timer pulse when low */
+/* Hiệu ứng ĐỒNG HỒ NHẤP NHÁY ĐỎ KHI SẮP HẾT GIỜ (Dưới 30s) */
 .timer.low {
     color: #ff6b6b !important;
     animation: pulse 1s infinite;
@@ -571,12 +640,13 @@ body {
     }
 }
 
+/* Màu đồng hồ khi HẾT GIỜ hẳn */
 .timer.timeout {
     color: #ff0000 !important;
     background: #3a0000 !important;
 }
 
-/* Score diff */
+/* Hiển thị điểm chênh lệch (ví dụ: Trắng +3) */
 .score-diff {
     font-size: 13px;
     color: #4fc3f7;
@@ -584,7 +654,7 @@ body {
     font-weight: 600;
 }
 
-/* ====== ANIMATIONS ====== */
+/* ====== HIỆU ỨNG CHUYỂN ĐỘNG (ANIMATIONS) ====== */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -597,6 +667,7 @@ body {
     }
 }
 
+/* Bàn cờ sẽ có hiệu ứng mờ dần hiện lên khi tải trang */
 .chess-board {
     animation: fadeIn 0.4s ease;
 }
