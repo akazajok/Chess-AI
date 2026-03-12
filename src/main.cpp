@@ -3,7 +3,7 @@
 int main()
 {
     // Chuỗi FEN khởi tạo bàn cờ mặc định
-    std::string defaultFEN = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1";
+    std::string defaultFEN = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1";
 
     gameManager manager;
 
@@ -50,9 +50,12 @@ int main()
     std::cin >> compe;
     if (to_lower(compe) == "yes")
     {
+        std::string ImageUrl;
         std::cout << "Nhap URL hinh anh\n";
-        std::cin >> defaultFEN;
+        std::cin >> ImageUrl;
+        defaultFEN = getFenFromImage(ImageUrl);
     }
+
     // Sau đó bạn cần sửa hàm Init_Game để truyền thêm biến aiLevel này vào
     manager.Init_Game(defaultFEN, mode, aiLevel);
     manager.Game_Turn();
