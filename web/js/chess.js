@@ -95,7 +95,6 @@ function loadFen(fenString) {
             squareElement.appendChild(pieceElement);
 
             col++;
-
         }
     }
 }
