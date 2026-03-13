@@ -47,6 +47,10 @@ bool gameManager::Is_Valid_Input(const std::string &moveStr)
     }
 
     // 4. Kiểm tra xem sau nước đi Vua có bị chiếu tướng không
+    int rowKing = (p->Get_Color() == Color::White) ? chessGame.rowKingWhite : chessGame.rowKingBlack;
+    int colKing = (p->Get_Color() == Color::White) ? chessGame.colKingWhite : chessGame.colKingBlack;
+    colorKing = p->Get_Color();
+
     int tempRowKing = (p->Get_Name() == Name::King) ? dest.first : rowKing;
     int tempColKing = (p->Get_Name() == Name::King) ? dest.second : colKing;
 
@@ -221,4 +225,19 @@ void gameManager::Game_Turn()
             std::cin.get();
         }
     }
+}
+
+std::string gameManager::Process_Web_Move(const std::string &moveStr)
+{
+    if (Is_Valid_Input(moveStr))
+    {
+        std::pair<int, int> start = convert_to_XY(moveStr.substr(0, 2));
+        std::pair<int, int> dest = convert_to_XY(moveStr.substr(2, 2));
+
+        // Thực hiện di chuyển và cập nhật trạng thái
+        chessGame.Execute_Move(start.first, start.second, dest.first, dest.second);
+
+        return chessGame.GetFen();
+    }
+    return "INVALID";
 }

@@ -133,8 +133,8 @@ body {
 }
 
 .row-labels span {
-    font-size: 13px;
-    color: #777;
+    font-size: 18px;
+    color: #ffffff;
     font-weight: 600;
     width: 16px;
     text-align: center;
@@ -156,8 +156,8 @@ body {
 }
 
 .col-labels span {
-    font-size: 13px;
-    color: #777;
+    font-size: 18px;
+    color: #ffffff;
     font-weight: 600;
     width: 70px;
     text-align: center;
@@ -206,14 +206,15 @@ body {
 
 /* ====== QUÂN CỜ ====== */
 .piece {
-    font-size: 44px;
-    /* Chỉnh kích thước quân cờ to nhỏ ở đây */
-    line-height: 1;
+    width: 60px;
+    /* Chiều rộng ảnh (nhỏ hơn ô cờ 70px một chút cho đẹp) */
+    height: 60px;
+    /* Chiều cao ảnh */
     pointer-events: none;
     /* Click xuyên qua hình quân cờ xuống ô vuông */
     z-index: 2;
-    filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.4));
-    /* Đổ bóng cho quân cờ */
+    filter: drop-shadow(1px 4px 4px rgba(0, 0, 0, 0.4));
+    /* Đổ bóng cho hình 2D nổi lên */
     transition: transform 0.1s;
 }
 

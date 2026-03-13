@@ -437,7 +437,7 @@ void Board::ExecutePromotion(const int &startRow, const int &startCol, const int
 }
 Name Board::GetPromotionChoice()
 {
-    std::cout << "Phong hau | Chon quan | Q/R/B/N" << std::endl;
+    //std::cout << "Phong hau | Chon quan | Q/R/B/N" << std::endl;
     char choice;
     std::cin >> choice;
     choice = toupper(choice);
@@ -453,7 +453,7 @@ Name Board::GetPromotionChoice()
     case 'N':
         return Name::Knight;
     default:
-        std::cout << "Sai Syntax, Auto Queen nha";
+        //std::cout << "Sai Syntax, Auto Queen nha";
         return Name::Queen;
     }
 }
@@ -846,8 +846,6 @@ bool Board::Is_Safe_Move(const Piece *piece, const int &destRow, const int &dest
 
     // 3. Kiểm tra an toàn
     Piece *checkingPiece = Get_Checking_Piece(rowKing, colKing, colorKing);
-    if (checkingPiece)
-        std::cout << int(checkingPiece->Get_Name()) << '\n';
     bool canEscape = (checkingPiece == nullptr);
 
     // 4. TRẢ LẠI TRẠNG THÁI CŨ CHÍNH XÁC (Undo Simulation)

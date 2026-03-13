@@ -39,6 +39,9 @@ public:
 
     // Vòng lặp điều khiển lượt chơi và hiển thị
     void Game_Turn();
+
+    // Phục vụ cho Web
+    std::string Process_Web_Move(const std::string &moveStr);
 };
 
 #endif
