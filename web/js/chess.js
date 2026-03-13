@@ -67,7 +67,7 @@ function loadFen(fenString) {
     const cols = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
     for (let i = 0; i < boardPart.length; ++i) {
-        let char = boardPart[i];
+        const char = boardPart[i];
         // xuống hàng
         if (char === '/') {
             row--;
@@ -79,11 +79,11 @@ function loadFen(fenString) {
         }
         else {
             // 1. Lấy cái ô cờ cần gắn quân 
-            let squareId = cols[col] + row;
-            let squareElement = document.getElementById(squareId);
+            const squareId = cols[col] + row;
+            const squareElement = document.getElementById(squareId);
 
             // 2. Tạo thẻ img
-            let pieceElement = document.createElement('img');
+            const pieceElement = document.createElement('img');
 
             // 3. Gắn img vào thẻ
             pieceElement.src = pieceImages[char];
@@ -95,6 +95,52 @@ function loadFen(fenString) {
             squareElement.appendChild(pieceElement);
 
             col++;
+        }
+    }
+}
+
+function handleSquareClick(squareId) {
+    // lấy ô đang được click - ô hiện tại
+    const clickSquare = document.getElementById(squareId);
+
+    // xem ô đó có quân cờ hay không 
+    const pieceInSquare = clickSquare.querySelector('img');
+
+    // bấm lần 1 - trước đó chưa chọn quân nào 
+    if (selectedSquare === null) {
+        if (pieceInSquare) {
+            selectedSquare = squareId;
+            // đổi màu quân cờ đang được click
+            clickSquare.classList.add('selected');
+        }
+    }
+    else {
+        // lấy ô cũ bấm ở lần 1
+        const oldSquare = document.getElementById(selectedSquare);
+
+        if (selectedSquare == squareId) {
+            selectedSquare = null;
+            oldSquare.classList.remove('selected');
+        }
+        else // click vào ô khác
+        {
+            // lấy ảnh quân cũ
+            const pieceToMove = oldSquare.querySelector('img');
+
+            // Nếu đó là ô địch thì xóa ảnh quân cờ đi
+            if (pieceInSquare) {
+                clickSquare.removeChild(pieceInSquare);
+            }
+
+            // Lệnh appendChild sẽ tự động "rút" thẻ img từ ô cũ và "cắm" nó sang ô mới.
+            // không cần viết code xóa thẻ img ở ô cũ, JS tự động di dời nó!
+            clickSquare.appendChild(pieceToMove);
+
+            // DỌN DẸP SAU KHI ĐI:
+            oldSquare.classList.remove('selected'); // Tắt hiệu ứng sáng ở ô cũ
+            selectedSquare = null; // Trả hệ thống về Trạng thái 0 chờ nước đi tiếp theo
+
+            const moveString = oldSquare.id + clickSquare.id; // VD: "e2e4"
         }
     }
 }

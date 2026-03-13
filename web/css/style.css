@@ -221,8 +221,14 @@ body {
 /* ====== TRẠNG THÁI CÁC Ô CỜ (SQUARE STATES) ====== */
 
 /* Ô đang được click chọn */
+/* Hiệu ứng làm sáng ô khi được click chọn */
 .square.selected {
-    background-color: #f6f682 !important;
+    background-color: rgba(155, 199, 0, 0.7);
+    /* Màu xanh nhạt */
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+    /* Tạo cảm giác ô bị lõm xuống */
+    cursor: grabbing;
+    /* Đổi hình con trỏ chuột */
 }
 
 /* Màu vàng chanh */
