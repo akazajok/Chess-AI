@@ -11,6 +11,7 @@
 #include <cstdlib> // hàm abs()
 #include <utility> // pair
 #include <cmath>   // lấy phần dư kiểu float, double
+#include <vector>
 
 class gameManager;
 
@@ -48,6 +49,7 @@ private:
     //=========Promotion Helper=========//
     bool IsPromotion(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
     void ExecutePromotion(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
+    void ExecutePromotionWithPiece(const int &startRow, const int &startCol, const int &destRow, const int &destCol, Name promotionPiece); // Dùng cho redo
     Name GetPromotionChoice(); // Prompt user input
     //=========Castling Tracker=========//
     struct CastlingFlags
@@ -70,6 +72,7 @@ private:
     // ăn tốt qua đường
     bool IsEnPassantMove(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
     void ExecuteEnPassant(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
+    
 
     //==========Move History============//
     struct MoveRecord
@@ -82,6 +85,7 @@ private:
         int previousFullmoveNumber;          // tổng số nước đi
         int previousHalfmoveClock;           // hòa do 50 nước
         std::string previousEnPassantTarget; // bắt tốt qua đường
+        Name promotionPiece = Name::None;    // Quân được nâng cấp (nếu là promotion)
     };
     std::vector<MoveRecord> moveHistory;
     std::vector<MoveRecord> redoHistory;
@@ -142,6 +146,9 @@ public:
     void ShowMoveHistory();
     void ClearRedo();
     std::string GetFen();
+    void UndoEnPassant(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
+    void UndoCastling(const int &destRow, const int &destCol, const int &startRow, const int &startCol);
+    void UndoPromotion(const int &startRow, const int &startCol, const int &destRow, const int &destCol, Color pawnColor);
 };
 
 #endif

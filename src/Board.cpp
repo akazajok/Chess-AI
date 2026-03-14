@@ -272,6 +272,14 @@ void Board::SaveMoveToHistory(int startRow, int startCol, int destRow, int destC
     record.FEN = GetFen();
     record.previousCastlingState = castlingFlags;
     record.capturedPiece = std::move(grid[destRow][destCol]); // move pointer từ grid về history
+    
+    // lưu thông tin quân 
+    if (IsPromotion(startRow, startCol, destRow, destCol))
+    {
+        Piece *promotedPiece = Get_Piece_At(destRow, destCol);
+        if (promotedPiece)
+            record.promotionPiece = promotedPiece->Get_Name();
+    }
 
     // Clear any future moves if we're in middle of history
     if (currentIndex < (int)moveHistory.size() - 1)
@@ -305,12 +313,30 @@ bool Board::Undo()
     // Flags castling back nếu có
     castlingFlags = lastmove.previousCastlingState;
 
-    // TODO: Handle special move undo logic ở đây...
-    // special move - cần handle castling undo đặc biệt
-
+    // Handle special move undo logic
     if (lastmove.WasSpecialMove)
     {
-        // TODO: Handle special move undo logic
+        // Xác định loại special move và undo phù hợp
+        if (IsCastlingMove(lastmove.destRow, lastmove.destCol, lastmove.startRow, lastmove.startCol))
+        {
+            // Undo Castling: Quay lại vị trí ban đầu của Rook
+            UndoCastling(lastmove.destRow, lastmove.destCol, lastmove.startRow, lastmove.startCol);
+        }
+        else if (IsEnPassantMove(lastmove.startRow, lastmove.startCol, lastmove.destRow, lastmove.destCol))
+        {
+            // Undo En Passant: Phục hồi quân Tốt bị ăn en passant
+            UndoEnPassant(lastmove.startRow, lastmove.startCol, lastmove.destRow, lastmove.destCol);
+        }
+        else if (lastmove.promotionPiece != Name::None)
+        {
+            // Undo Promotion
+            Piece *movedPiece = Get_Piece_At(lastmove.destRow, lastmove.destCol);
+            if (movedPiece)
+            {
+                Color pawnColor = movedPiece->Get_Color();
+                UndoPromotion(lastmove.startRow, lastmove.startCol, lastmove.destRow, lastmove.destCol, pawnColor);
+            }
+        }
     }
 
     // Lúc này capturedPiece trong record sẽ là nullptr
@@ -353,7 +379,17 @@ bool Board::Redo()
 
     // Thực thi trực tiếp KHÔNG save vào movehistory
     if (redomove.WasSpecialMove)
-        ExecuteSpecialMove(redomove.startRow, redomove.startCol, redomove.destRow, redomove.destCol);
+    {
+        // Nếu là promotion, dùng ExecutePromotionWithPiece để tránh hỏi người dùng
+        if (redomove.promotionPiece != Name::None)
+        {
+            ExecutePromotionWithPiece(redomove.startRow, redomove.startCol, redomove.destRow, redomove.destCol, redomove.promotionPiece);
+        }
+        else
+        {
+            ExecuteSpecialMove(redomove.startRow, redomove.startCol, redomove.destRow, redomove.destCol);
+        }
+    }
     else
     {
         TrackPieceMovement(redomove.startRow, redomove.startCol);
@@ -456,6 +492,45 @@ Name Board::GetPromotionChoice()
         //std::cout << "Sai Syntax, Auto Queen nha";
         return Name::Queen;
     }
+}
+
+void Board::ExecutePromotionWithPiece(const int &startRow, const int &startCol, const int &destRow, const int &destCol, Name promotionPiece)
+{
+    Piece *pawn = Get_Piece_At(startRow, startCol);
+    Color pawncolor = pawn->Get_Color();
+    // Update Position trước khi tạo promotion piece
+    Update_Position(startRow, startCol, destRow, destCol);
+
+    // Tạo quân được nâng cấp dựa vào tham số
+    switch (promotionPiece)
+    {
+    case Name::Queen:
+        grid[destRow][destCol] = std::make_unique<Queen>(pawncolor, destRow, destCol);
+        break;
+    case Name::Rook:
+        grid[destRow][destCol] = std::make_unique<Rook>(pawncolor, destRow, destCol);
+        break;
+    case Name::Bishop:
+        grid[destRow][destCol] = std::make_unique<Bishop>(pawncolor, destRow, destCol);
+        break;
+    case Name::Knight:
+        grid[destRow][destCol] = std::make_unique<Knight>(pawncolor, destRow, destCol);
+        break;
+    default:
+        // Mặc định là Queen
+        grid[destRow][destCol] = std::make_unique<Queen>(pawncolor, destRow, destCol);
+        break;
+    }
+}
+void Board::UndoPromotion(const int &startRow, const int &startCol, const int &destRow, const int &destCol, Color pawnColor)
+{
+    grid[destRow][destCol] = nullptr;
+    
+   
+    grid[destRow][destCol] = std::make_unique<Pawn>(pawnColor, destRow, destCol);
+    
+
+    Update_Position(destRow, destCol, startRow, startCol);
 }
 //=======================Castling Func=======================//
 bool Board::IsCastlingMove(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
@@ -605,6 +680,20 @@ void Board::UpdateCastlingRights()
     if (castlingRights.empty())
         castlingRights = "-";
 }
+
+void Board::UndoCastling(const int &destRow, const int &destCol, const int &startRow, const int &startCol)
+{
+    Update_Position(destRow, destCol, startRow, startCol);
+    
+    bool isKingside = (startCol > destCol);
+    
+    int rookDestCol = isKingside ? 7 : 0;
+    int rookCurrCol = isKingside ? destCol - 1 : destCol + 1;
+    Update_Position(destRow, rookCurrCol, destRow, rookDestCol);
+}
+
+
+
 //=============================En Passant Func=========================
 bool Board::IsEnPassantMove(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
@@ -633,6 +722,18 @@ void Board::ExecuteEnPassant(const int &startRow, const int &startCol, const int
     grid[startRow][destCol] = nullptr;
     enPassantTarget = "-";
 }
+
+void Board::UndoEnPassant(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
+{
+    // quân Tốt bị ăn nằm ở cùng hàng với quân đi
+    Color capturedPawnColor = (sideToMove == 'w') ? Color::Black : Color::White;
+    
+    grid[startRow][destCol] = std::make_unique<Pawn>(capturedPawnColor, startRow, destCol);
+    
+    Update_Position(destRow, destCol, startRow, startCol);
+}
+
+
 
 // lấy quân đang chặn đường || chiếu tướng
 Piece *Board::Get_Piece_On_Path(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
