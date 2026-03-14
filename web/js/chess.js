@@ -99,6 +99,17 @@ function loadFen(fenString) {
     }
 }
 
+// Xóa toàn bộ quân cờ 
+function clearFen() {
+    const allSquares = document.querySelectorAll('.square');
+    for (let i = 0; i < allSquares.length; ++i) {
+        const square = allSquares[i];
+        const piece = square.querySelector('img');
+        if (piece)
+            square.removeChild(piece);
+    }
+}
+
 function handleSquareClick(squareId) {
     // lấy ô đang được click - ô hiện tại
     const clickSquare = document.getElementById(squareId);
@@ -127,21 +138,49 @@ function handleSquareClick(squareId) {
             // lấy ảnh quân cũ
             const pieceToMove = oldSquare.querySelector('img');
 
-            // Nếu đó là ô địch thì xóa ảnh quân cờ đi
-            if (pieceInSquare) {
-                clickSquare.removeChild(pieceInSquare);
-            }
+            // // Nếu đó là ô địch thì xóa ảnh quân cờ đi
+            // if (pieceInSquare) {
+            //     clickSquare.removeChild(pieceInSquare);
+            // }
 
-            // Lệnh appendChild sẽ tự động "rút" thẻ img từ ô cũ và "cắm" nó sang ô mới.
-            // không cần viết code xóa thẻ img ở ô cũ, JS tự động di dời nó!
-            clickSquare.appendChild(pieceToMove);
+            // // Lệnh appendChild sẽ tự động "rút" thẻ img từ ô cũ và "cắm" nó sang ô mới.
+            // // không cần viết code xóa thẻ img ở ô cũ, JS tự động di dời nó!
+            // clickSquare.appendChild(pieceToMove);
 
-            // DỌN DẸP SAU KHI ĐI:
-            oldSquare.classList.remove('selected'); // Tắt hiệu ứng sáng ở ô cũ
-            selectedSquare = null; // Trả hệ thống về Trạng thái 0 chờ nước đi tiếp theo
+            // // DỌN DẸP SAU KHI ĐI:
+            // oldSquare.classList.remove('selected'); // Tắt hiệu ứng sáng ở ô cũ
+            // selectedSquare = null; // Trả hệ thống về Trạng thái 0 chờ nước đi tiếp theo
 
             const moveString = oldSquare.id + clickSquare.id; // VD: "e2e4"
+            sendMoveToServer(moveString);
         }
+    }
+}
+
+// Hàm gửi nước đi lên Node.js và nhận FEN mới từ C++
+async function sendMoveToServer(moveStr) {
+    try {
+        // Gọi API của Node.js
+        // await nghĩa là "đợi ở đây cho đến khi có phản hồi thì mới chạy tiếp dòng dưới".
+        const response = await fetch('http://localhost:3000/api/move', {
+            method: 'POST', // Phương thức POST giống với app.post bên sever.js
+            headers: {
+                'Content-Type': 'application/json' // Báo cho server biết mình gửi dạng JSON
+            },
+            body: JSON.stringify({ data: moveStr }) // Đóng gói dữ liệu: { "data": "e2e4" }
+        });
+
+        // Đợi Node.js trả kết quả (chính là chuỗi FEN từ C++)
+        const json = await response.json();
+        const newFen = json.result;
+
+        // --- Cập nhật lại giao diện ---
+        currentFEN = newFen; // Cập nhật biến lưu trữ
+        clearBoard();        // Quét sạch bàn cờ cũ
+        loadFen(currentFEN); // Xếp lại cờ theo FEN mới nhất của C++
+
+    } catch (error) {
+        console.error("Lỗi khi gọi server:", error);
     }
 }
 
@@ -150,3 +189,4 @@ createBoard();
 
 // Đẩy quân lên bàn cờ
 loadFen(currentFEN);
+

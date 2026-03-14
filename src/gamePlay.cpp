@@ -15,7 +15,7 @@ bool gameManager::Is_Valid_Input(const std::string &moveStr)
     // 1. Kiểm tra định dạng chuỗi nhập vào (vd: e2e4)
     if (!isValidMoveFormat(moveStr))
     {
-        std::cout << "=> Sai dinh dang! Vui long nhap lai (vi du: e2e4).\n";
+        // std::cout << "=> Sai dinh dang! Vui long nhap lai (vi du: e2e4).\n";
         return false;
     }
 
@@ -27,7 +27,7 @@ bool gameManager::Is_Valid_Input(const std::string &moveStr)
     // 2. Kiểm tra ô bắt đầu có quân và có đúng lượt hay không
     if (!p)
     {
-        std::cout << "=> O bat dau khong co quan co!\n";
+        // std::cout << "=> O bat dau khong co quan co!\n";
         return false;
     }
 
@@ -35,14 +35,14 @@ bool gameManager::Is_Valid_Input(const std::string &moveStr)
     if ((currentTurn == 'w' && p->Get_Color() != Color::White) ||
         (currentTurn == 'b' && p->Get_Color() != Color::Black))
     {
-        std::cout << "=> Khong phai luot cua ban! (" << (currentTurn == 'w' ? "Trang" : "Den") << " dang di)\n";
+        // std::cout << "=> Khong phai luot cua ban! (" << (currentTurn == 'w' ? "Trang" : "Den") << " dang di)\n";
         return false;
     }
 
     // 3. Kiểm tra luật di chuyển của quân cờ đó
     if (!chessGame.Can_Move(start.first, start.second, dest.first, dest.second))
     {
-        std::cout << "=> Nuoc di khong dung luat!\n";
+        // std::cout << "=> Nuoc di khong dung luat!\n";
         return false;
     }
 
@@ -56,7 +56,7 @@ bool gameManager::Is_Valid_Input(const std::string &moveStr)
 
     if (!chessGame.Is_Safe_Move(p, dest.first, dest.second, tempRowKing, tempColKing, colorKing))
     {
-        std::cout << "=> Nuoc di nguy hiem! Vua se bi chieu tuong.\n";
+        // std::cout << "=> Nuoc di nguy hiem! Vua se bi chieu tuong.\n";
         return false;
     }
 
