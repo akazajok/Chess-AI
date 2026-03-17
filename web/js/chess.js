@@ -11,8 +11,15 @@ const pieceImages = {
     'k': 'piece/bK.jpg', 'q': 'piece/bQ.jpg', 'r': 'piece/bR.jpg', 'b': 'piece/bB.jpg', 'n': 'piece/bN.jpg', 'p': 'piece/bP.jpg'
 };
 
-let selectedSquare = null; // Lưu ID ô đang chọn (VD: 'e2')
 let currentFEN = "";
+let selectedSquare = null; // Lưu ID ô đang chọn (VD: 'e2')
+
+//==============Section ID cần thiết implement==========//
+const newGameBtn = document.getElementById('new-game-btn');
+const moveListEl = document.getElementById('move-list');
+const statusText = document.getElementById('game-status');
+const capturedWhiteList = document.getElementById('captured-white-list');
+const capturedBlackList = document.getElementById('captured-black-list');
 
 // Hàm tạo bàn cờ ( nhãn hàng && cột, 64 ô cờ sáng tối)
 function createBoard() {
@@ -96,6 +103,50 @@ function loadFen(fenString) {
 
             col++;
         }
+    }
+}
+//===================New game function===============//
+// Xóa toàn bộ quân trên bàn cờ
+function clearBoardPieces() {
+    const pieceImgs = document.querySelectorAll('.square img');
+    pieceImgs.forEach(img => img.remove());
+}
+
+// Reset các panel phụ trợ
+function resetSidePanels() {
+    if (moveListEl) moveListEl.innerHTML = ''; //rêset history
+    if (capturedWhiteList) capturedWhiteList.innerHTML = '';
+    if (capturedBlackList) capturedBlackList.innerHTML = '';
+    if (statusText) statusText.textContent = 'White to move'; //reset status
+}
+
+// Gọi API new game xuống server (respawn engine, nhận FEN)
+async function requestNewGame() {
+    const resp = await fetch('http://localhost:3000/api/newgame', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+    });
+    const json = await resp.json();
+    return json.result || defaultFEN;
+}
+
+// Xử lý khi bấm New Game
+async function handleNewGame() {
+    try {
+        const fen = await requestNewGame();
+        selectedSquare = null;
+        currentFEN = fen;
+        clearBoardPieces();
+        loadFen(fen);
+        resetSidePanels();
+    } catch (err) {
+        console.error('New Game lỗi, fallback FEN mặc định', err);
+        selectedSquare = null;
+        currentFEN = defaultFEN;
+        clearBoardPieces();
+        loadFen(defaultFEN);
+        resetSidePanels();
     }
 }
 
@@ -280,3 +331,6 @@ createBoard();
 // Đẩy quân lên bàn cờ
 loadFen(currentFEN);
 
+// Bind nút New Game
+if (newGameBtn)
+    newGameBtn.addEventListener('click', handleNewGame);
