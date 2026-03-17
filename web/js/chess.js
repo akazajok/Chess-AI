@@ -14,6 +14,7 @@ const pieceImages = {
 let currentFEN = "";
 let selectedSquare = null; // Lưu ID ô đang chọn (VD: 'e2')
 
+
 //==============Section ID cần thiết implement==========//
 const newGameBtn = document.getElementById('new-game-btn');
 const moveListEl = document.getElementById('move-list');
