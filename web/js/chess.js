@@ -110,6 +110,14 @@ function clearFen() {
     }
 }
 
+// Xóa gợi ý nước đi
+function clearHighlights() {
+    const allSquares = document.querySelectorAll('.square');
+    for (let i = 0; i < allSquares.length; ++i) {
+        allSquares[i].classList.remove('valid-move', 'valid-capture');
+    }
+}
+
 function handleSquareClick(squareId) {
     // lấy ô đang được click - ô hiện tại
     const clickSquare = document.getElementById(squareId);
@@ -123,6 +131,8 @@ function handleSquareClick(squareId) {
             selectedSquare = squareId;
             // đổi màu quân cờ đang được click
             clickSquare.classList.add('selected');
+
+            getValidMovesFromServer(squareId);
         }
     }
     else {
@@ -132,6 +142,7 @@ function handleSquareClick(squareId) {
         if (selectedSquare == squareId) {
             selectedSquare = null;
             oldSquare.classList.remove('selected');
+            clearHighlights();
         }
         else // click vào ô khác
         {
@@ -141,6 +152,58 @@ function handleSquareClick(squareId) {
             // DỌN DẸP SAU KHI ĐI:
             oldSquare.classList.remove('selected'); // Tắt hiệu ứng sáng ở ô cũ
             selectedSquare = null; // Trả hệ thống về Trạng thái 0 chờ nước đi tiếp theo
+
+            clearHighlights();
+        }
+    }
+}
+
+// Hàm gửi yêu cầu lấy nước đi và hiển thị
+async function getValidMovesFromServer(squareId) {
+    try {
+        // --- PHẦN 1: MÔ PHỎNG DỮ LIỆU ĐỂ TEST GIAO DIỆN ---
+        // Tạm thời giả lập: cứ click vào đâu thì hiện dấu chấm ở 2 ô phía trước nó
+        let colChar = squareId.charAt(0); // VD: 'e'
+        let rowNum = parseInt(squareId.charAt(1)); // VD: 2
+
+        const mockMoves = [
+            { id: colChar + (rowNum + 1), isCapture: false }, // Bước tới 1 ô (hiện dấu chấm)
+            { id: colChar + (rowNum + 2), isCapture: true }   // Bước tới 2 ô (hiện vòng tròn đỏ)
+        ];
+
+        // Vẽ lên giao diện
+        showValidMoves(mockMoves);
+
+        /* // --- PHẦN 2: CODE THẬT SAU NÀY (Bỏ comment khi đã code xong C++ và sever.js) ---
+        const response = await fetch('http://localhost:3000/api/valid-moves', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ square: squareId }) 
+        });
+        const json = await response.json();
+        showValidMoves(json.moves); 
+        */
+
+    } catch (error) {
+        console.error("Lỗi khi lấy danh sách gợi ý:", error);
+    }
+}
+
+// Hàm gán class CSS để hiện thị dấu chấm
+function showValidMoves(moves) {
+    for (let i = 0; i < moves.length; i++) {
+        const move = moves[i];
+        const targetSquare = document.getElementById(move.id);
+
+        if (targetSquare) {
+            // Nếu là nước ăn quân (isCapture = true), dùng class valid-capture
+            if (move.isCapture) {
+                targetSquare.classList.add('valid-capture');
+            }
+            // Nếu là ô trống, dùng class valid-move
+            else {
+                targetSquare.classList.add('valid-move');
+            }
         }
     }
 }
