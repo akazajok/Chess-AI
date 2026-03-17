@@ -1,32 +1,190 @@
-
 const boardElement = document.getElementById('chess-board');
 const rowLabelsLeft = document.getElementById('row-labels-left');
 const rowLabelsRight = document.getElementById('row-labels-right');
 const colLabelsTop = document.getElementById('col-labels-top');
 const colLabelsBottom = document.getElementById('col-labels-bottom');
 
-// Ánh xạ ký tự FEN sang đường dẫn file ảnh
-const pieceImages = {
-    'K': 'piece/wK.jpg', 'Q': 'piece/wQ.jpg', 'R': 'piece/wR.jpg', 'B': 'piece/wB.jpg', 'N': 'piece/wN.jpg', 'P': 'piece/wP.jpg',
-    'k': 'piece/bK.jpg', 'q': 'piece/bQ.jpg', 'r': 'piece/bR.jpg', 'b': 'piece/bB.jpg', 'n': 'piece/bN.jpg', 'p': 'piece/bP.jpg'
-};
-
-let currentFEN = "";
-let selectedSquare = null; // Lưu ID ô đang chọn (VD: 'e2')
-
-//==============Section ID cần thiết implement==========//
+// ===== UI controls =====
 const newGameBtn = document.getElementById('new-game-btn');
+const undoBtn = document.getElementById('undo-btn');
+const redoBtn = document.getElementById('redo-btn');
 const moveListEl = document.getElementById('move-list');
 const statusText = document.getElementById('game-status');
 const capturedWhiteList = document.getElementById('captured-white-list');
 const capturedBlackList = document.getElementById('captured-black-list');
+const topTimerEl = document.getElementById('top-timer');
+const bottomTimerEl = document.getElementById('bottom-timer');
+const timerSelectEl = document.getElementById('timer-select');
+const topPlayerEl = document.getElementById('top-player');
+const bottomPlayerEl = document.getElementById('bottom-player');
 
-// Hàm tạo bàn cờ ( nhãn hàng && cột, 64 ô cờ sáng tối)
+// ===== Asset paths (dễ đổi về sau) =====
+const PIECE_ASSET_BASE = 'piece/';
+const pieceImages = {
+    K: `${PIECE_ASSET_BASE}wK.jpg`, Q: `${PIECE_ASSET_BASE}wQ.jpg`, R: `${PIECE_ASSET_BASE}wR.jpg`,
+    B: `${PIECE_ASSET_BASE}wB.jpg`, N: `${PIECE_ASSET_BASE}wN.jpg`, P: `${PIECE_ASSET_BASE}wP.jpg`,
+    k: `${PIECE_ASSET_BASE}bK.jpg`, q: `${PIECE_ASSET_BASE}bQ.jpg`, r: `${PIECE_ASSET_BASE}bR.jpg`,
+    b: `${PIECE_ASSET_BASE}bB.jpg`, n: `${PIECE_ASSET_BASE}bN.jpg`, p: `${PIECE_ASSET_BASE}bP.jpg`
+};
+
+const defaultFEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+
+const initialPieceCount = {
+    P: 8, R: 2, N: 2, B: 2, Q: 1,
+    p: 8, r: 2, n: 2, b: 2, q: 1
+};
+
+let currentFEN = defaultFEN;
+let selectedSquare = null;
+let gameEnded = false;
+
+// ===== Timer state =====
+let timerId = null;
+let whiteTime = 300;
+let blackTime = 300;
+
+// ===== Helpers =====
+function getSideToMove(fen) {
+    const parts = fen.split(' ');
+    return parts[1] || 'w';
+}
+
+function formatTime(seconds) {
+    const s = Math.max(0, seconds);
+    const mm = Math.floor(s / 60);
+    const ss = s % 60;
+    return `${mm}:${ss.toString().padStart(2, '0')}`;
+}
+
+function extractBoardPart(fen) {
+    return fen.split(' ')[0] || '';
+}
+
+function countPiecesFromFen(fen) {
+    const board = extractBoardPart(fen);
+    const count = {};
+    for (const ch of board) {
+        if (pieceImages[ch]) count[ch] = (count[ch] || 0) + 1;
+    }
+    return count;
+}
+
+function buildCapturedList() {
+    const now = countPiecesFromFen(currentFEN);
+
+    // captured by White = black pieces missing
+    // captured by Black = white pieces missing
+    const capturedByWhite = [];
+    const capturedByBlack = [];
+
+    for (const key of Object.keys(initialPieceCount)) {
+        const missing = (initialPieceCount[key] || 0) - (now[key] || 0);
+        for (let i = 0; i < missing; i++) {
+            if (key === key.toLowerCase()) capturedByWhite.push(key); // black piece captured
+            else capturedByBlack.push(key); // white piece captured
+        }
+    }
+
+    return { capturedByWhite, capturedByBlack };
+}
+
+function renderCapturedPieces() {
+    const { capturedByWhite, capturedByBlack } = buildCapturedList();
+
+    capturedBlackList.innerHTML = '';
+    capturedWhiteList.innerHTML = '';
+
+    for (const ch of capturedByWhite) {
+        const img = document.createElement('img');
+        img.src = pieceImages[ch];
+        img.className = 'piece';
+        img.style.width = '22px';
+        img.style.height = '22px';
+        img.style.marginRight = '4px';
+        capturedBlackList.appendChild(img);
+    }
+
+    for (const ch of capturedByBlack) {
+        const img = document.createElement('img');
+        img.src = pieceImages[ch];
+        img.className = 'piece';
+        img.style.width = '22px';
+        img.style.height = '22px';
+        img.style.marginRight = '4px';
+        capturedWhiteList.appendChild(img);
+    }
+}
+
+function updateStatusByFen(fen) {
+    if (gameEnded) return;
+    const side = getSideToMove(fen);
+    statusText.textContent = side === 'w' ? 'White to move' : 'Black to move';
+
+    if (side === 'w') {
+        bottomPlayerEl.classList.add('active');
+        topPlayerEl.classList.remove('active');
+    } else {
+        topPlayerEl.classList.add('active');
+        bottomPlayerEl.classList.remove('active');
+    }
+}
+
+function updateTimerUI() {
+    bottomTimerEl.textContent = formatTime(whiteTime);
+    topTimerEl.textContent = formatTime(blackTime);
+}
+
+function stopClock() {
+    if (timerId) {
+        clearInterval(timerId);
+        timerId = null;
+    }
+}
+
+function startClock() {
+    stopClock();
+    if (gameEnded) return;
+
+    // No timer mode
+    if (Number(timerSelectEl.value) === 0) {
+        bottomTimerEl.textContent = '∞';
+        topTimerEl.textContent = '∞';
+        return;
+    }
+
+    timerId = setInterval(() => {
+        const side = getSideToMove(currentFEN);
+
+        if (side === 'w') whiteTime--;
+        else blackTime--;
+
+        updateTimerUI();
+
+        if (whiteTime <= 0) {
+            gameEnded = true;
+            stopClock();
+            showGameOver('Black wins!', 'White hết thời gian');
+        }
+        if (blackTime <= 0) {
+            gameEnded = true;
+            stopClock();
+            showGameOver('White wins!', 'Black hết thời gian');
+        }
+    }, 1000);
+}
+
+function resetClockBySelection() {
+    const selected = Number(timerSelectEl.value);
+    whiteTime = selected;
+    blackTime = selected;
+    updateTimerUI();
+}
+
+// ===== Board Rendering =====
 function createBoard() {
     const cols = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
-    // tạo hàng ngang a-h 
-    for (let i = 0; i < 8; ++i) {
+    for (let i = 0; i < 8; i++) {
         const top = document.createElement('span');
         top.innerText = cols[i];
         colLabelsTop.appendChild(top);
@@ -36,7 +194,6 @@ function createBoard() {
         colLabelsBottom.appendChild(bottom);
     }
 
-    // tạo 64 ô cờ và nhãn hàng 8-1
     for (let row = 8; row >= 1; row--) {
         const left = document.createElement('span');
         left.innerText = row;
@@ -46,291 +203,237 @@ function createBoard() {
         right.innerText = row;
         rowLabelsRight.appendChild(right);
 
-        for (let col = 0; col < 8; ++col) {
+        for (let col = 0; col < 8; col++) {
             const square = document.createElement('div');
             square.classList.add('square');
             square.id = cols[col] + row;
-
-            const isLight = (row + col) % 2 === 0;
-            if (isLight)
-                square.classList.add('light');
-            else
-                square.classList.add("dark");
-
-            // Lắng nghe sự kiện click
+            square.classList.add((row + col) % 2 === 0 ? 'light' : 'dark');
             square.addEventListener('click', () => handleSquareClick(square.id));
-
             boardElement.appendChild(square);
         }
     }
 }
 
-// Đưa quân lên bàn cờ
-function loadFen(fenString) {
-    const boardPart = fenString.split(' ')[0];
+function clearBoardPieces() {
+    document.querySelectorAll('.square img').forEach(img => img.remove());
+}
 
+function clearHighlights() {
+    document.querySelectorAll('.square').forEach(sq => {
+        sq.classList.remove('valid-move', 'valid-capture', 'selected');
+    });
+}
+
+function loadFen(fenString) {
+    const boardPart = extractBoardPart(fenString);
     let row = 8;
     let col = 0;
     const cols = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
-    for (let i = 0; i < boardPart.length; ++i) {
-        const char = boardPart[i];
-        // xuống hàng
+    for (const char of boardPart) {
         if (char === '/') {
             row--;
             col = 0;
+            continue;
         }
-        else if (!isNaN(char)) {
-            // Nếu là con số -> ô trống
-            col += parseInt(char);
+        if (!Number.isNaN(Number(char))) {
+            col += Number(char);
+            continue;
         }
-        else {
-            // 1. Lấy cái ô cờ cần gắn quân 
-            const squareId = cols[col] + row;
-            const squareElement = document.getElementById(squareId);
 
-            // 2. Tạo thẻ img
+        const squareId = cols[col] + row;
+        const squareElement = document.getElementById(squareId);
+        if (squareElement && pieceImages[char]) {
             const pieceElement = document.createElement('img');
-
-            // 3. Gắn img vào thẻ
             pieceElement.src = pieceImages[char];
-
-            // 4. Làm đẹp nhờ css
             pieceElement.classList.add('piece');
-
-            // 5. Nhét vào ô cờ 
             squareElement.appendChild(pieceElement);
-
-            col++;
         }
+        col++;
     }
 }
-//===================New game function===============//
-// Xóa toàn bộ quân trên bàn cờ
-function clearBoardPieces() {
-    const pieceImgs = document.querySelectorAll('.square img');
-    pieceImgs.forEach(img => img.remove());
+
+function refreshBoardFromFen(fen) {
+    currentFEN = fen;
+    clearBoardPieces();
+    clearHighlights();
+    selectedSquare = null;
+    loadFen(fen);
+    updateStatusByFen(fen);
+    renderCapturedPieces();
 }
 
-// Reset các panel phụ trợ
-function resetSidePanels() {
-    if (moveListEl) moveListEl.innerHTML = ''; //rêset history
-    if (capturedWhiteList) capturedWhiteList.innerHTML = '';
-    if (capturedBlackList) capturedBlackList.innerHTML = '';
-    if (statusText) statusText.textContent = 'White to move'; //reset status
-}
-
-// Gọi API new game xuống server (respawn engine, nhận FEN)
-async function requestNewGame() {
-    const resp = await fetch('http://localhost:3000/api/newgame', {
+// ===== API calls =====
+async function postJson(url, body = {}) {
+    const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
+        body: JSON.stringify(body)
     });
-    const json = await resp.json();
+    return response.json();
+}
+
+function parseResult(result) {
+    if (result.startsWith('CHECKMATE')) {
+        const parts = result.split('|');
+        showGameOver(parts[1] === 'White' ? 'White wins!' : 'Black wins!', 'Chiếu bí (Checkmate)');
+        gameEnded = true;
+        stopClock();
+        return parts[2];
+    }
+
+    if (result.startsWith('KING_CAPTURED')) {
+        const parts = result.split('|');
+        showGameOver(parts[1] === 'White' ? 'White wins!' : 'Black wins!', 'Vua đã bị bắt');
+        gameEnded = true;
+        stopClock();
+        return parts[2];
+    }
+
+    if (result.startsWith('DRAW')) {
+        const parts = result.split('|');
+        showGameOver('Hòa cờ', parts[1]);
+        gameEnded = true;
+        stopClock();
+        return parts[2];
+    }
+
+    if (result === 'INVALID') return null;
+    return result;
+}
+
+async function sendMoveToServer(moveStr) {
+    const json = await postJson('http://localhost:3000/api/move', { data: moveStr });
+    const fen = parseResult(json.result);
+    if (!fen) return false;
+    refreshBoardFromFen(fen);
+    return true;
+}
+
+async function requestNewGame() {
+    const json = await postJson('http://localhost:3000/api/newgame', {});
     return json.result || defaultFEN;
 }
 
-// Xử lý khi bấm New Game
+async function requestUndo() {
+    const json = await postJson('http://localhost:3000/api/undo', {});
+    return json.result;
+}
+
+async function requestRedo() {
+    const json = await postJson('http://localhost:3000/api/redo', {});
+    return json.result;
+}
+
+// ===== Game actions =====
 async function handleNewGame() {
     try {
         const fen = await requestNewGame();
-        selectedSquare = null;
-        currentFEN = fen;
-        clearBoardPieces();
-        loadFen(fen);
-        resetSidePanels();
-    } catch (err) {
-        console.error('New Game lỗi, fallback FEN mặc định', err);
-        selectedSquare = null;
-        currentFEN = defaultFEN;
-        clearBoardPieces();
-        loadFen(defaultFEN);
-        resetSidePanels();
+        gameEnded = false;
+        document.getElementById('game-over-modal').classList.remove('active');
+        if (moveListEl) moveListEl.innerHTML = '';
+        resetClockBySelection();
+        refreshBoardFromFen(fen);
+        startClock();
+    } catch (error) {
+        console.error('New Game lỗi:', error);
+        alert('Không gọi được New Game API');
     }
 }
 
-// Xóa toàn bộ quân cờ 
-function clearFen() {
-    const allSquares = document.querySelectorAll('.square');
-    for (let i = 0; i < allSquares.length; ++i) {
-        const square = allSquares[i];
-        const piece = square.querySelector('img');
-        if (piece)
-            square.removeChild(piece);
+async function handleUndo() {
+    if (gameEnded) return;
+    try {
+        const result = await requestUndo();
+        const fen = parseResult(result);
+        if (!fen) return;
+        refreshBoardFromFen(fen);
+    } catch (error) {
+        console.error('Undo lỗi:', error);
     }
 }
 
-// Xóa gợi ý nước đi
-function clearHighlights() {
-    const allSquares = document.querySelectorAll('.square');
-    for (let i = 0; i < allSquares.length; ++i) {
-        allSquares[i].classList.remove('valid-move', 'valid-capture');
+async function handleRedo() {
+    if (gameEnded) return;
+    try {
+        const result = await requestRedo();
+        const fen = parseResult(result);
+        if (!fen) return;
+        refreshBoardFromFen(fen);
+    } catch (error) {
+        console.error('Redo lỗi:', error);
     }
+}
+
+function addMoveToHistory(moveStr) {
+    if (!moveListEl) return;
+    const item = document.createElement('div');
+    item.textContent = moveStr;
+    moveListEl.appendChild(item);
+    moveListEl.scrollTop = moveListEl.scrollHeight;
 }
 
 function handleSquareClick(squareId) {
-    // lấy ô đang được click - ô hiện tại
-    const clickSquare = document.getElementById(squareId);
+    if (gameEnded) return;
 
-    // xem ô đó có quân cờ hay không 
-    const pieceInSquare = clickSquare.querySelector('img');
+    const clickedSquare = document.getElementById(squareId);
+    const pieceInSquare = clickedSquare.querySelector('img');
 
-    // bấm lần 1 - trước đó chưa chọn quân nào 
     if (selectedSquare === null) {
-        if (pieceInSquare) {
-            selectedSquare = squareId;
-            // đổi màu quân cờ đang được click
-            clickSquare.classList.add('selected');
-
-            getValidMovesFromServer(squareId);
-        }
+        if (!pieceInSquare) return;
+        selectedSquare = squareId;
+        clickedSquare.classList.add('selected');
+        return;
     }
-    else {
-        // lấy ô cũ bấm ở lần 1
-        const oldSquare = document.getElementById(selectedSquare);
 
-        if (selectedSquare == squareId) {
-            selectedSquare = null;
-            oldSquare.classList.remove('selected');
-            clearHighlights();
-        }
-        else // click vào ô khác
-        {
-            const moveString = oldSquare.id + clickSquare.id; // VD: "e2e4"
-            sendMoveToServer(moveString);
+    const oldSquare = document.getElementById(selectedSquare);
 
-            // DỌN DẸP SAU KHI ĐI:
-            oldSquare.classList.remove('selected'); // Tắt hiệu ứng sáng ở ô cũ
-            selectedSquare = null; // Trả hệ thống về Trạng thái 0 chờ nước đi tiếp theo
-
-            clearHighlights();
-        }
+    if (selectedSquare === squareId) {
+        selectedSquare = null;
+        oldSquare.classList.remove('selected');
+        clearHighlights();
+        return;
     }
-}
 
-// Hàm gửi yêu cầu lấy nước đi và hiển thị
-async function getValidMovesFromServer(squareId) {
-    try {
-        // --- PHẦN 1: MÔ PHỎNG DỮ LIỆU ĐỂ TEST GIAO DIỆN ---
-        // Tạm thời giả lập: cứ click vào đâu thì hiện dấu chấm ở 2 ô phía trước nó
-        let colChar = squareId.charAt(0); // VD: 'e'
-        let rowNum = parseInt(squareId.charAt(1)); // VD: 2
+    const moveString = oldSquare.id + clickedSquare.id;
+    oldSquare.classList.remove('selected');
+    selectedSquare = null;
 
-        const mockMoves = [
-            { id: colChar + (rowNum + 1), isCapture: false }, // Bước tới 1 ô (hiện dấu chấm)
-            { id: colChar + (rowNum + 2), isCapture: true }   // Bước tới 2 ô (hiện vòng tròn đỏ)
-        ];
-
-        // Vẽ lên giao diện
-        showValidMoves(mockMoves);
-
-        /* // --- PHẦN 2: CODE THẬT SAU NÀY (Bỏ comment khi đã code xong C++ và sever.js) ---
-        const response = await fetch('http://localhost:3000/api/valid-moves', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ square: squareId }) 
-        });
-        const json = await response.json();
-        showValidMoves(json.moves); 
-        */
-
-    } catch (error) {
-        console.error("Lỗi khi lấy danh sách gợi ý:", error);
-    }
-}
-
-// Hàm gán class CSS để hiện thị dấu chấm
-function showValidMoves(moves) {
-    for (let i = 0; i < moves.length; i++) {
-        const move = moves[i];
-        const targetSquare = document.getElementById(move.id);
-
-        if (targetSquare) {
-            // Nếu là nước ăn quân (isCapture = true), dùng class valid-capture
-            if (move.isCapture) {
-                targetSquare.classList.add('valid-capture');
+    sendMoveToServer(moveString)
+        .then(success => {
+            if (success) {
+                addMoveToHistory(moveString);
             }
-            // Nếu là ô trống, dùng class valid-move
-            else {
-                targetSquare.classList.add('valid-move');
-            }
-        }
-    }
-}
-
-// Hàm gửi nước đi lên Node.js và nhận FEN mới từ C++
-async function sendMoveToServer(moveStr) {
-    try {
-        // Gọi API của Node.js
-        // await nghĩa là "đợi ở đây cho đến khi có phản hồi thì mới chạy tiếp dòng dưới".
-        const response = await fetch('http://localhost:3000/api/move', {
-            method: 'POST', // Phương thức POST giống với app.post bên sever.js
-            headers: {
-                'Content-Type': 'application/json' // Báo cho server biết mình gửi dạng JSON
-            },
-            body: JSON.stringify({ data: moveStr }) // Đóng gói dữ liệu: { "data": "e2e4" }
+        })
+        .catch(error => {
+            console.error('Lỗi khi gọi server:', error);
+            alert('Lỗi kết nối server!');
         });
-
-        // Đợi Node.js trả kết quả (chính là chuỗi FEN từ C++)
-        const json = await response.json();
-        const result = json.result;
-
-        // --- PHÂN TÍCH KẾT QUẢ TỪ C++ ---
-        if (result.startsWith("CHECKMATE")) {
-            const parts = result.split("|");
-            const winner = (parts[1] === "White") ? "Quân trắng chiến thắng" : "Quân đen chiến thắng";
-            showGameOver(winner, "Chiếu bí (Checkmate)");
-            currentFEN = parts[2];
-        }
-        else if (result.startsWith("KING_CAPTURED")) {
-            const parts = result.split("|");
-            const winner = (parts[1] === "White") ? "Quân Trắng Thắng!" : "Quân Đen Thắng!";
-            showGameOver(winner, "Vua đã bị tiêu diệt!");
-            currentFEN = parts[2];
-        }
-        else if (result.startsWith("DRAW")) {
-            const parts = result.split("|");
-            showGameOver("Hòa cờ", parts[1]);
-            currentFEN = parts[2];
-        }
-        else if (result != "INVALID") {
-            currentFEN = result;
-        }
-        else {
-            console.warn("Nước đi không hợp lệ!");
-            return;
-        }
-
-        clearFen();
-        loadFen(currentFEN);
-
-    } catch (error) {
-        console.error("Lỗi khi gọi server:", error);
-        alert("Lỗi kết nối Server! Vui lòng bật Node.js");
-    }
 }
 
 function showGameOver(winner, reason) {
-    // 1. Dòng này sẽ xóa chữ "Trắng thắng!" đi và thay bằng chữ bạn truyền vào
     document.getElementById('winner-text').innerText = winner;
-
-    // 2. Dòng này xóa chữ "Chiếu bí" đi và thay bằng lý do bạn truyền vào
     document.getElementById('reason-text').innerText = reason;
-
-    // 3. Bật bảng thông báo lên
     document.getElementById('game-over-modal').classList.add('active');
 }
 
-// Chạy ngay khi web vừa load/F5
-sendMoveToServer("reset");
+// ===== Bootstrap =====
+function bindEvents() {
+    if (newGameBtn) newGameBtn.addEventListener('click', handleNewGame);
+    if (undoBtn) undoBtn.addEventListener('click', handleUndo);
+    if (redoBtn) redoBtn.addEventListener('click', handleRedo);
+    if (timerSelectEl) {
+        timerSelectEl.addEventListener('change', () => {
+            resetClockBySelection();
+            startClock();
+        });
+    }
+}
 
-// Tạo bàn cờ 
-createBoard();
+async function init() {
+    createBoard();
+    bindEvents();
+    await handleNewGame();
+}
 
-// Đẩy quân lên bàn cờ
-loadFen(currentFEN);
-
-// Bind nút New Game
-if (newGameBtn)
-    newGameBtn.addEventListener('click', handleNewGame);
+init();

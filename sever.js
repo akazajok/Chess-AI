@@ -13,6 +13,7 @@ const PORT = 3000;      // Cổng mạng số 3000
 // Nếu file exe nằm trong thư mục gốc thì để './ChessGame.exe'
 // Nếu nó nằm trong thư mục build hay src thì phải sửa lại, ví dụ: './src/ChessGame.exe'
 let chessEngine = null;
+let currentResponse = null; // lưu thông tin request WEB đang chờ C++ trả kết quả
 
 function startEngine() {
     if (chessEngine) {
@@ -21,7 +22,7 @@ function startEngine() {
         currentResponse = null;
     }
 
-    chessEngine = spawn('ChessGame.exe');
+    chessEngine = spawn('./ChessGame.exe');
 
     chessEngine.stdout.on('data', (data) => {
         const output = data.toString().trim();
@@ -41,8 +42,6 @@ function startEngine() {
 // khởi động lần đầu
 startEngine();
 
-let currentResponse = null; // lưu thông tin đối tượng nào của WEB vừa hỏi C++
-
 // stdout (Standard Output) === std::cout trong C++.
 // Bất cứ khi nào mã C++ của bạn chạy lệnh cout << "kết quả";, Node.js sẽ ngay lập tức "nghe" thấy ở đoạn code này.
 // Sau khi bắt được chữ C++ in ra (output), nó kiểm tra cuốn sổ xem có ai đang đợi không (if currentResponse). Nếu có, nó đóng gói kết quả lại và gửi trả về cho Web (.json({ result: output })), rồi xé nháp (currentResponse = null) để chờ lượt tiếp theo.
@@ -57,6 +56,18 @@ app.post('/api/move', (req, res) => {
 
     currentResponse = res;
     chessEngine.stdin.write(data + '\n');
+});
+
+app.post('/api/undo', (req, res) => {
+    console.log('[Web] yêu cầu Undo');
+    currentResponse = res;
+    chessEngine.stdin.write('undo\n');
+});
+
+app.post('/api/redo', (req, res) => {
+    console.log('[Web] yêu cầu Redo');
+    currentResponse = res;
+    chessEngine.stdin.write('redo\n');
 });
 
 // Reset ván mới: respawn engine và trả về FEN mặc định
