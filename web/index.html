@@ -118,6 +118,17 @@
         </div>
     </div>
 
+    <!-- Quyết định thắng thua, hòa -->
+    <div class="modal-overlay" id="game-over-modal">
+        <div class="modal">
+            <h2 id="winner-text" style="font-size: 28px; color: #fff; margin-bottom: 10px;">White wins!</h2>
+            <p id="reason-text" style="font-size: 16px; color: #aaa; margin-bottom: 24px;">Checkmate</p>
+            <button class="btn btn-new" style="padding: 12px 24px; font-size: 16px;" onclick="restartGame()">
+                ★ Play Again
+            </button>
+        </div>
+    </div>
+
     <!-- Stockfish loaded as Worker in chess.js -->
     <script src="js/chess.js"></script>
 </body>
