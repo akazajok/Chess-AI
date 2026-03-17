@@ -42,6 +42,8 @@ public:
 
     // Phục vụ cho Web
     std::string Process_Web_Move(const std::string &moveStr);
+
+    std::string Check_Game_State();
 };
 
 #endif

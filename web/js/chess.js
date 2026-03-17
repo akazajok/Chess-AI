@@ -11,9 +11,8 @@ const pieceImages = {
     'k': 'piece/bK.jpg', 'q': 'piece/bQ.jpg', 'r': 'piece/bR.jpg', 'b': 'piece/bB.jpg', 'n': 'piece/bN.jpg', 'p': 'piece/bP.jpg'
 };
 
+let currentFEN = "";
 let selectedSquare = null; // Lưu ID ô đang chọn (VD: 'e2')
-const defaultFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-let currentFEN = defaultFEN;
 
 //==============Section ID cần thiết implement==========//
 const newGameBtn = document.getElementById('new-game-btn');
@@ -75,7 +74,7 @@ function loadFen(fenString) {
     const cols = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
     for (let i = 0; i < boardPart.length; ++i) {
-        let char = boardPart[i];
+        const char = boardPart[i];
         // xuống hàng
         if (char === '/') {
             row--;
@@ -87,11 +86,11 @@ function loadFen(fenString) {
         }
         else {
             // 1. Lấy cái ô cờ cần gắn quân 
-            let squareId = cols[col] + row;
-            let squareElement = document.getElementById(squareId);
+            const squareId = cols[col] + row;
+            const squareElement = document.getElementById(squareId);
 
             // 2. Tạo thẻ img
-            let pieceElement = document.createElement('img');
+            const pieceElement = document.createElement('img');
 
             // 3. Gắn img vào thẻ
             pieceElement.src = pieceImages[char];
@@ -150,6 +149,181 @@ async function handleNewGame() {
         resetSidePanels();
     }
 }
+
+// Xóa toàn bộ quân cờ 
+function clearFen() {
+    const allSquares = document.querySelectorAll('.square');
+    for (let i = 0; i < allSquares.length; ++i) {
+        const square = allSquares[i];
+        const piece = square.querySelector('img');
+        if (piece)
+            square.removeChild(piece);
+    }
+}
+
+// Xóa gợi ý nước đi
+function clearHighlights() {
+    const allSquares = document.querySelectorAll('.square');
+    for (let i = 0; i < allSquares.length; ++i) {
+        allSquares[i].classList.remove('valid-move', 'valid-capture');
+    }
+}
+
+function handleSquareClick(squareId) {
+    // lấy ô đang được click - ô hiện tại
+    const clickSquare = document.getElementById(squareId);
+
+    // xem ô đó có quân cờ hay không 
+    const pieceInSquare = clickSquare.querySelector('img');
+
+    // bấm lần 1 - trước đó chưa chọn quân nào 
+    if (selectedSquare === null) {
+        if (pieceInSquare) {
+            selectedSquare = squareId;
+            // đổi màu quân cờ đang được click
+            clickSquare.classList.add('selected');
+
+            getValidMovesFromServer(squareId);
+        }
+    }
+    else {
+        // lấy ô cũ bấm ở lần 1
+        const oldSquare = document.getElementById(selectedSquare);
+
+        if (selectedSquare == squareId) {
+            selectedSquare = null;
+            oldSquare.classList.remove('selected');
+            clearHighlights();
+        }
+        else // click vào ô khác
+        {
+            const moveString = oldSquare.id + clickSquare.id; // VD: "e2e4"
+            sendMoveToServer(moveString);
+
+            // DỌN DẸP SAU KHI ĐI:
+            oldSquare.classList.remove('selected'); // Tắt hiệu ứng sáng ở ô cũ
+            selectedSquare = null; // Trả hệ thống về Trạng thái 0 chờ nước đi tiếp theo
+
+            clearHighlights();
+        }
+    }
+}
+
+// Hàm gửi yêu cầu lấy nước đi và hiển thị
+async function getValidMovesFromServer(squareId) {
+    try {
+        // --- PHẦN 1: MÔ PHỎNG DỮ LIỆU ĐỂ TEST GIAO DIỆN ---
+        // Tạm thời giả lập: cứ click vào đâu thì hiện dấu chấm ở 2 ô phía trước nó
+        let colChar = squareId.charAt(0); // VD: 'e'
+        let rowNum = parseInt(squareId.charAt(1)); // VD: 2
+
+        const mockMoves = [
+            { id: colChar + (rowNum + 1), isCapture: false }, // Bước tới 1 ô (hiện dấu chấm)
+            { id: colChar + (rowNum + 2), isCapture: true }   // Bước tới 2 ô (hiện vòng tròn đỏ)
+        ];
+
+        // Vẽ lên giao diện
+        showValidMoves(mockMoves);
+
+        /* // --- PHẦN 2: CODE THẬT SAU NÀY (Bỏ comment khi đã code xong C++ và sever.js) ---
+        const response = await fetch('http://localhost:3000/api/valid-moves', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ square: squareId }) 
+        });
+        const json = await response.json();
+        showValidMoves(json.moves); 
+        */
+
+    } catch (error) {
+        console.error("Lỗi khi lấy danh sách gợi ý:", error);
+    }
+}
+
+// Hàm gán class CSS để hiện thị dấu chấm
+function showValidMoves(moves) {
+    for (let i = 0; i < moves.length; i++) {
+        const move = moves[i];
+        const targetSquare = document.getElementById(move.id);
+
+        if (targetSquare) {
+            // Nếu là nước ăn quân (isCapture = true), dùng class valid-capture
+            if (move.isCapture) {
+                targetSquare.classList.add('valid-capture');
+            }
+            // Nếu là ô trống, dùng class valid-move
+            else {
+                targetSquare.classList.add('valid-move');
+            }
+        }
+    }
+}
+
+// Hàm gửi nước đi lên Node.js và nhận FEN mới từ C++
+async function sendMoveToServer(moveStr) {
+    try {
+        // Gọi API của Node.js
+        // await nghĩa là "đợi ở đây cho đến khi có phản hồi thì mới chạy tiếp dòng dưới".
+        const response = await fetch('http://localhost:3000/api/move', {
+            method: 'POST', // Phương thức POST giống với app.post bên sever.js
+            headers: {
+                'Content-Type': 'application/json' // Báo cho server biết mình gửi dạng JSON
+            },
+            body: JSON.stringify({ data: moveStr }) // Đóng gói dữ liệu: { "data": "e2e4" }
+        });
+
+        // Đợi Node.js trả kết quả (chính là chuỗi FEN từ C++)
+        const json = await response.json();
+        const result = json.result;
+
+        // --- PHÂN TÍCH KẾT QUẢ TỪ C++ ---
+        if (result.startsWith("CHECKMATE")) {
+            const parts = result.split("|");
+            const winner = (parts[1] === "White") ? "Quân trắng chiến thắng" : "Quân đen chiến thắng";
+            showGameOver(winner, "Chiếu bí (Checkmate)");
+            currentFEN = parts[2];
+        }
+        else if (result.startsWith("KING_CAPTURED")) {
+            const parts = result.split("|");
+            const winner = (parts[1] === "White") ? "Quân Trắng Thắng!" : "Quân Đen Thắng!";
+            showGameOver(winner, "Vua đã bị tiêu diệt!");
+            currentFEN = parts[2];
+        }
+        else if (result.startsWith("DRAW")) {
+            const parts = result.split("|");
+            showGameOver("Hòa cờ", parts[1]);
+            currentFEN = parts[2];
+        }
+        else if (result != "INVALID") {
+            currentFEN = result;
+        }
+        else {
+            console.warn("Nước đi không hợp lệ!");
+            return;
+        }
+
+        clearFen();
+        loadFen(currentFEN);
+
+    } catch (error) {
+        console.error("Lỗi khi gọi server:", error);
+        alert("Lỗi kết nối Server! Vui lòng bật Node.js");
+    }
+}
+
+function showGameOver(winner, reason) {
+    // 1. Dòng này sẽ xóa chữ "Trắng thắng!" đi và thay bằng chữ bạn truyền vào
+    document.getElementById('winner-text').innerText = winner;
+
+    // 2. Dòng này xóa chữ "Chiếu bí" đi và thay bằng lý do bạn truyền vào
+    document.getElementById('reason-text').innerText = reason;
+
+    // 3. Bật bảng thông báo lên
+    document.getElementById('game-over-modal').classList.add('active');
+}
+
+// Chạy ngay khi web vừa load/F5
+sendMoveToServer("reset");
 
 // Tạo bàn cờ 
 createBoard();
