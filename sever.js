@@ -38,6 +38,7 @@ chessEngine.stderr.on('data', (data) => {
 // Ta lấy chuỗi FEN từ req.body.data, sau đó cất cái res vào cuốn sổ currentResponse.
 // stdin.write(data + '\n'):Đưa thông tin vào Terminal của C++, sau đó (\n chính là phím Enter). 
 app.post('/api/move', (req, res) => {
+    console.log("====== ĐÃ NHẬN ĐƯỢC REQUEST TỪ WEB! Nước đi:", req.body.data);
     const { data } = req.body;
     console.log(`[Web] gửi xuống C++: ${data}`);
 

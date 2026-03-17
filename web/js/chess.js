@@ -12,7 +12,7 @@ const pieceImages = {
 };
 
 let selectedSquare = null; // Lưu ID ô đang chọn (VD: 'e2')
-let currentFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+let currentFEN = "";
 
 // Hàm tạo bàn cờ ( nhãn hàng && cột, 64 ô cờ sáng tối)
 function createBoard() {
@@ -135,24 +135,12 @@ function handleSquareClick(squareId) {
         }
         else // click vào ô khác
         {
-            // lấy ảnh quân cũ
-            const pieceToMove = oldSquare.querySelector('img');
-
-            // // Nếu đó là ô địch thì xóa ảnh quân cờ đi
-            // if (pieceInSquare) {
-            //     clickSquare.removeChild(pieceInSquare);
-            // }
-
-            // // Lệnh appendChild sẽ tự động "rút" thẻ img từ ô cũ và "cắm" nó sang ô mới.
-            // // không cần viết code xóa thẻ img ở ô cũ, JS tự động di dời nó!
-            // clickSquare.appendChild(pieceToMove);
-
-            // // DỌN DẸP SAU KHI ĐI:
-            // oldSquare.classList.remove('selected'); // Tắt hiệu ứng sáng ở ô cũ
-            // selectedSquare = null; // Trả hệ thống về Trạng thái 0 chờ nước đi tiếp theo
-
             const moveString = oldSquare.id + clickSquare.id; // VD: "e2e4"
             sendMoveToServer(moveString);
+
+            // DỌN DẸP SAU KHI ĐI:
+            oldSquare.classList.remove('selected'); // Tắt hiệu ứng sáng ở ô cũ
+            selectedSquare = null; // Trả hệ thống về Trạng thái 0 chờ nước đi tiếp theo
         }
     }
 }
@@ -172,17 +160,56 @@ async function sendMoveToServer(moveStr) {
 
         // Đợi Node.js trả kết quả (chính là chuỗi FEN từ C++)
         const json = await response.json();
-        const newFen = json.result;
+        const result = json.result;
 
-        // --- Cập nhật lại giao diện ---
-        currentFEN = newFen; // Cập nhật biến lưu trữ
-        clearBoard();        // Quét sạch bàn cờ cũ
-        loadFen(currentFEN); // Xếp lại cờ theo FEN mới nhất của C++
+        // --- PHÂN TÍCH KẾT QUẢ TỪ C++ ---
+        if (result.startsWith("CHECKMATE")) {
+            const parts = result.split("|");
+            const winner = (parts[1] === "White") ? "Quân trắng chiến thắng" : "Quân đen chiến thắng";
+            showGameOver(winner, "Chiếu bí (Checkmate)");
+            currentFEN = parts[2];
+        }
+        else if (result.startsWith("KING_CAPTURED")) {
+            const parts = result.split("|");
+            const winner = (parts[1] === "White") ? "Quân Trắng Thắng!" : "Quân Đen Thắng!";
+            showGameOver(winner, "Vua đã bị tiêu diệt!");
+            currentFEN = parts[2];
+        }
+        else if (result.startsWith("DRAW")) {
+            const parts = result.split("|");
+            showGameOver("Hòa cờ", parts[1]);
+            currentFEN = parts[2];
+        }
+        else if (result != "INVALID") {
+            currentFEN = result;
+        }
+        else {
+            console.warn("Nước đi không hợp lệ!");
+            return;
+        }
+
+        clearFen();
+        loadFen(currentFEN);
 
     } catch (error) {
         console.error("Lỗi khi gọi server:", error);
+        alert("Lỗi kết nối Server! Vui lòng bật Node.js");
     }
 }
+
+function showGameOver(winner, reason) {
+    // 1. Dòng này sẽ xóa chữ "Trắng thắng!" đi và thay bằng chữ bạn truyền vào
+    document.getElementById('winner-text').innerText = winner;
+
+    // 2. Dòng này xóa chữ "Chiếu bí" đi và thay bằng lý do bạn truyền vào
+    document.getElementById('reason-text').innerText = reason;
+
+    // 3. Bật bảng thông báo lên
+    document.getElementById('game-over-modal').classList.add('active');
+}
+
+// Chạy ngay khi web vừa load/F5
+sendMoveToServer("reset");
 
 // Tạo bàn cờ 
 createBoard();

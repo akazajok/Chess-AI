@@ -14,10 +14,7 @@ bool gameManager::Is_Valid_Input(const std::string &moveStr)
 {
     // 1. Kiểm tra định dạng chuỗi nhập vào (vd: e2e4)
     if (!isValidMoveFormat(moveStr))
-    {
-        // std::cout << "=> Sai dinh dang! Vui long nhap lai (vi du: e2e4).\n";
         return false;
-    }
 
     std::pair<int, int> start = convert_to_XY(moveStr.substr(0, 2));
     std::pair<int, int> dest = convert_to_XY(moveStr.substr(2, 2));
@@ -26,39 +23,23 @@ bool gameManager::Is_Valid_Input(const std::string &moveStr)
 
     // 2. Kiểm tra ô bắt đầu có quân và có đúng lượt hay không
     if (!p)
-    {
-        // std::cout << "=> O bat dau khong co quan co!\n";
         return false;
-    }
 
     char currentTurn = chessGame.sideToMove;
     if ((currentTurn == 'w' && p->Get_Color() != Color::White) ||
         (currentTurn == 'b' && p->Get_Color() != Color::Black))
-    {
-        // std::cout << "=> Khong phai luot cua ban! (" << (currentTurn == 'w' ? "Trang" : "Den") << " dang di)\n";
         return false;
-    }
 
     // 3. Kiểm tra luật di chuyển của quân cờ đó
     if (!chessGame.Can_Move(start.first, start.second, dest.first, dest.second))
-    {
-        // std::cout << "=> Nuoc di khong dung luat!\n";
         return false;
-    }
 
     // 4. Kiểm tra xem sau nước đi Vua có bị chiếu tướng không
-    int rowKing = (p->Get_Color() == Color::White) ? chessGame.rowKingWhite : chessGame.rowKingBlack;
-    int colKing = (p->Get_Color() == Color::White) ? chessGame.colKingWhite : chessGame.colKingBlack;
-    colorKing = p->Get_Color();
-
     int tempRowKing = (p->Get_Name() == Name::King) ? dest.first : rowKing;
     int tempColKing = (p->Get_Name() == Name::King) ? dest.second : colKing;
 
     if (!chessGame.Is_Safe_Move(p, dest.first, dest.second, tempRowKing, tempColKing, colorKing))
-    {
-        // std::cout << "=> Nuoc di nguy hiem! Vua se bi chieu tuong.\n";
         return false;
-    }
 
     return true;
 }
@@ -113,7 +94,6 @@ void gameManager::Game_Turn()
             std::string winner = (chessGame.sideToMove == 'w') ? "DEN" : "TRANG";
             std::cout << ">>> VUA " << loser << " DA BI AN! "
                       << "PHE " << winner << " THANG! <<<\n";
-            break;
         }
         colorKing = king->Get_Color();
 
@@ -227,17 +207,69 @@ void gameManager::Game_Turn()
     }
 }
 
+std::string gameManager::Check_Game_State()
+{
+    // Lấy thông tin Vua của phe ĐANG ĐẾN LƯỢT (Ví dụ: Đen vừa đi xong, giờ là lượt Trắng)
+    char currentTurn = chessGame.sideToMove;
+    int rK = (currentTurn == 'w') ? chessGame.rowKingWhite : chessGame.rowKingBlack;
+    int cK = (currentTurn == 'w') ? chessGame.colKingWhite : chessGame.colKingBlack;
+    Color cColor = (currentTurn == 'w') ? Color::White : Color::Black;
+
+    // Đối thủ của phe hiện tại (Dùng để in ra người thắng nếu phe hiện tại thua)
+    std::string opponent = (currentTurn == 'w') ? "Black" : "White";
+
+    // 1. Kiểm tra xem Vua có bị ăn mất không (Trường hợp cờ biến thể/lỗi game)
+    Piece *king = chessGame.Get_Piece_At(rK, cK);
+    if (!king || king->Get_Name() != Name::King)
+        return "KING_CAPTURED|" + opponent + "|" + chessGame.GetFen();
+
+    // 2. Kiểm tra Hòa cờ do thiếu quân hoặc luật 50 nước
+    if (chessGame.Is_Insufficient_Material())
+        return "DRAW|Thiếu quân chiếu bí (Insufficient Material)|" + chessGame.GetFen();
+
+    if (chessGame.Is_Draw_By_50_Moves())
+        return "DRAW|Luật 50 nước (50-move rule)|" + chessGame.GetFen();
+
+    // 3. Kiểm tra Chiếu / Chiếu Bí / Hòa Pat (Stalemate)
+    if (chessGame.Get_Checking_Piece(rK, cK, cColor))
+    {
+        // Bị chiếu mà hết đường lui -> Chiếu bí
+        if (!chessGame.Can_Escape_Check(rK, cK, cColor))
+            return "CHECKMATE|" + opponent + "|" + chessGame.GetFen();
+    }
+    else if (!chessGame.Has_Legal_Moves(cColor))
+    {
+        // Không bị chiếu nhưng không thể đi -> Hòa Pat
+        return "DRAW|Hết nước đi (Stalemate)|" + chessGame.GetFen();
+    }
+
+    // 4. Nếu game vẫn bình thường -> Chỉ trả về chuỗi FEN
+    return chessGame.GetFen();
+}
+
 std::string gameManager::Process_Web_Move(const std::string &moveStr)
 {
-    if (Is_Valid_Input(moveStr))
-    {
-        std::pair<int, int> start = convert_to_XY(moveStr.substr(0, 2));
-        std::pair<int, int> dest = convert_to_XY(moveStr.substr(2, 2));
-
-        // Thực hiện di chuyển và cập nhật trạng thái
-        chessGame.Execute_Move(start.first, start.second, dest.first, dest.second);
-
+    if (moveStr == "reset")
         return chessGame.GetFen();
+
+    // 1: Cập nhật tọa độ Vua cho class để hàm Is_Valid_Input không bị lỗi -1,-1
+    rowKing = (chessGame.sideToMove == 'w') ? chessGame.rowKingWhite : chessGame.rowKingBlack;
+    colKing = (chessGame.sideToMove == 'w') ? chessGame.colKingWhite : chessGame.colKingBlack;
+    colorKing = (chessGame.sideToMove == 'w') ? Color::White : Color::Black;
+
+    // 2: Kiểm tra nước đi có đúng luật không
+    if (!Is_Valid_Input(moveStr))
+    {
+        return "INVALID";
     }
-    return "INVALID";
+
+    // 3: Thực hiện nước đi
+    std::pair<int, int> start = convert_to_XY(moveStr.substr(0, 2));
+    std::pair<int, int> dest = convert_to_XY(moveStr.substr(2, 2));
+
+    // Hàm này chạy xong sẽ TỰ ĐỘNG đổi chessGame.sideToMove sang phe đối thủ
+    chessGame.Execute_Move(start.first, start.second, dest.first, dest.second);
+
+    // 4: Gọi hàm kiểm tra cục diện cho phe vừa được nhường lượt
+    return Check_Game_State();
 }
