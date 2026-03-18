@@ -272,8 +272,8 @@ void Board::SaveMoveToHistory(int startRow, int startCol, int destRow, int destC
     record.FEN = GetFen();
     record.previousCastlingState = castlingFlags;
     record.capturedPiece = std::move(grid[destRow][destCol]); // move pointer từ grid về history
-    
-    // lưu thông tin quân 
+
+    // lưu thông tin quân
     if (IsPromotion(startRow, startCol, destRow, destCol))
     {
         Piece *promotedPiece = Get_Piece_At(destRow, destCol);
@@ -473,7 +473,7 @@ void Board::ExecutePromotion(const int &startRow, const int &startCol, const int
 }
 Name Board::GetPromotionChoice()
 {
-    //std::cout << "Phong hau | Chon quan | Q/R/B/N" << std::endl;
+    // std::cout << "Phong hau | Chon quan | Q/R/B/N" << std::endl;
     char choice;
     std::cin >> choice;
     choice = toupper(choice);
@@ -489,7 +489,7 @@ Name Board::GetPromotionChoice()
     case 'N':
         return Name::Knight;
     default:
-        //std::cout << "Sai Syntax, Auto Queen nha";
+        // std::cout << "Sai Syntax, Auto Queen nha";
         return Name::Queen;
     }
 }
@@ -525,10 +525,8 @@ void Board::ExecutePromotionWithPiece(const int &startRow, const int &startCol, 
 void Board::UndoPromotion(const int &startRow, const int &startCol, const int &destRow, const int &destCol, Color pawnColor)
 {
     grid[destRow][destCol] = nullptr;
-    
-   
+
     grid[destRow][destCol] = std::make_unique<Pawn>(pawnColor, destRow, destCol);
-    
 
     Update_Position(destRow, destCol, startRow, startCol);
 }
@@ -684,15 +682,13 @@ void Board::UpdateCastlingRights()
 void Board::UndoCastling(const int &destRow, const int &destCol, const int &startRow, const int &startCol)
 {
     Update_Position(destRow, destCol, startRow, startCol);
-    
+
     bool isKingside = (startCol > destCol);
-    
+
     int rookDestCol = isKingside ? 7 : 0;
     int rookCurrCol = isKingside ? destCol - 1 : destCol + 1;
     Update_Position(destRow, rookCurrCol, destRow, rookDestCol);
 }
-
-
 
 //=============================En Passant Func=========================
 bool Board::IsEnPassantMove(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
@@ -727,13 +723,11 @@ void Board::UndoEnPassant(const int &startRow, const int &startCol, const int &d
 {
     // quân Tốt bị ăn nằm ở cùng hàng với quân đi
     Color capturedPawnColor = (sideToMove == 'w') ? Color::Black : Color::White;
-    
+
     grid[startRow][destCol] = std::make_unique<Pawn>(capturedPawnColor, startRow, destCol);
-    
+
     Update_Position(destRow, destCol, startRow, startCol);
 }
-
-
 
 // lấy quân đang chặn đường || chiếu tướng
 Piece *Board::Get_Piece_On_Path(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
@@ -886,13 +880,17 @@ bool Board::Can_Escape_Check(const int &rowKing, const int &colKing, const Color
         checkCol = colKing + directionColKing[i];
 
         if (Is_Safe_Move(pieceKing, checkRow, checkCol, checkRow, checkCol, colorKing))
+        {
+            std::cout << "có thể thoát chiếu tướng không KING" << '\n';
+            std::cout << checkRow << " " << checkCol << '\n';
             return true;
+        }
     }
 
     // Ăn quân đang chiếu || Chặn đường quân chiếu
     // Di chuyển thì có bị chiếu tướng nữa không ???
-
     Piece *pieceCheck = Get_Checking_Piece(rowKing, colKing, colorKing);
+
     std::pair<int, int> posCheck = pieceCheck->Get_Position();
     // chiếu đôi thì không chạy được
     if (cntCheck > 1)
@@ -903,7 +901,9 @@ bool Board::Can_Escape_Check(const int &rowKing, const int &colKing, const Color
         // tìm quân có thể ăn quân mã ( đang chiếu tướng ) && ktra có còn bị chiếu tướng không ?
         Piece *piece = Get_Checking_Piece(posCheck.first, posCheck.second, pieceCheck->Get_Color());
         if (piece && Is_Safe_Move(piece, posCheck.first, posCheck.second, rowKing, colKing, colorKing))
+        {
             return true;
+        }
     }
     int stepRow = (posCheck.first == rowKing) ? 0 : (rowKing > posCheck.first) ? 1
                                                                                : -1;
@@ -915,7 +915,11 @@ bool Board::Can_Escape_Check(const int &rowKing, const int &colKing, const Color
     {
         Piece *piece = Get_Checking_Piece(currR, currC, pieceCheck->Get_Color());
         if (piece && Is_Safe_Move(piece, currR, currC, rowKing, colKing, colorKing))
-            return true;
+        {
+            if (piece->Get_Name() != Name::King)
+                return true;
+        }
+
         currR += stepRow;
         currC += stepCol;
     }

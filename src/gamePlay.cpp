@@ -12,6 +12,7 @@ void gameManager::Init_Game(std::string FEN, GameMode mode, const int &aiLevel)
 
 bool gameManager::Is_Valid_Input(const std::string &moveStr)
 {
+
     // 1. Kiểm tra định dạng chuỗi nhập vào (vd: e2e4)
     if (!isValidMoveFormat(moveStr))
         return false;
@@ -28,18 +29,25 @@ bool gameManager::Is_Valid_Input(const std::string &moveStr)
     char currentTurn = chessGame.sideToMove;
     if ((currentTurn == 'w' && p->Get_Color() != Color::White) ||
         (currentTurn == 'b' && p->Get_Color() != Color::Black))
-        return false;
+    {
 
+        return false;
+    }
     // 3. Kiểm tra luật di chuyển của quân cờ đó
     if (!chessGame.Can_Move(start.first, start.second, dest.first, dest.second))
+    {
+
         return false;
+    }
 
     // 4. Kiểm tra xem sau nước đi Vua có bị chiếu tướng không
     int tempRowKing = (p->Get_Name() == Name::King) ? dest.first : rowKing;
     int tempColKing = (p->Get_Name() == Name::King) ? dest.second : colKing;
 
     if (!chessGame.Is_Safe_Move(p, dest.first, dest.second, tempRowKing, tempColKing, colorKing))
+    {
         return false;
+    }
 
     return true;
 }
@@ -221,21 +229,29 @@ std::string gameManager::Check_Game_State()
     // 1. Kiểm tra xem Vua có bị ăn mất không (Trường hợp cờ biến thể/lỗi game)
     Piece *king = chessGame.Get_Piece_At(rK, cK);
     if (!king || king->Get_Name() != Name::King)
+    {
         return "KING_CAPTURED|" + opponent + "|" + chessGame.GetFen();
+    }
 
     // 2. Kiểm tra Hòa cờ do thiếu quân hoặc luật 50 nước
     if (chessGame.Is_Insufficient_Material())
+    {
         return "DRAW|Thiếu quân chiếu bí (Insufficient Material)|" + chessGame.GetFen();
+    }
 
     if (chessGame.Is_Draw_By_50_Moves())
+    {
         return "DRAW|Luật 50 nước (50-move rule)|" + chessGame.GetFen();
+    }
 
     // 3. Kiểm tra Chiếu / Chiếu Bí / Hòa Pat (Stalemate)
     if (chessGame.Get_Checking_Piece(rK, cK, cColor))
     {
         // Bị chiếu mà hết đường lui -> Chiếu bí
         if (!chessGame.Can_Escape_Check(rK, cK, cColor))
+        {
             return "CHECKMATE|" + opponent + "|" + chessGame.GetFen();
+        }
     }
     else if (!chessGame.Has_Legal_Moves(cColor))
     {
