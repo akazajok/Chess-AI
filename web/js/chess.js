@@ -213,51 +213,29 @@ function handleSquareClick(squareId) {
 // Hàm gửi yêu cầu lấy nước đi và hiển thị
 async function getValidMovesFromServer(squareId) {
     try {
-        // --- PHẦN 1: MÔ PHỎNG DỮ LIỆU ĐỂ TEST GIAO DIỆN ---
-        // Tạm thời giả lập: cứ click vào đâu thì hiện dấu chấm ở 2 ô phía trước nó
-        let colChar = squareId.charAt(0); // VD: 'e'
-        let rowNum = parseInt(squareId.charAt(1)); // VD: 2
-
-        const mockMoves = [
-            { id: colChar + (rowNum + 1), isCapture: false }, // Bước tới 1 ô (hiện dấu chấm)
-            { id: colChar + (rowNum + 2), isCapture: true }   // Bước tới 2 ô (hiện vòng tròn đỏ)
-        ];
-
-        // Vẽ lên giao diện
-        showValidMoves(mockMoves);
-
-        /* // --- PHẦN 2: CODE THẬT SAU NÀY (Bỏ comment khi đã code xong C++ và sever.js) ---
-        const response = await fetch('http://localhost:3000/api/valid-moves', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ square: squareId }) 
+        // Gọi API của Node.js
+        // await nghĩa là "đợi ở đây cho đến khi có phản hồi thì mới chạy tiếp dòng dưới".
+        const response = await fetch('http://localhost:3000/api/getValidMoves', {
+            method: 'POST', // Phương thức POST giống với app.post bên sever.js
+            headers: {
+                'Content-Type': 'application/json' // Báo cho server biết mình gửi dạng JSON
+            },
+            body: JSON.stringify({ data: squareId }) // Đóng gói dữ liệu: { "data": "e2" }
         });
+        // Đợi Node.js trả kết quả 
         const json = await response.json();
-        showValidMoves(json.moves); 
-        */
+
+        showValidMoves(json.validMoves);
 
     } catch (error) {
-        console.error("Lỗi khi lấy danh sách gợi ý:", error);
+        console.error("Lỗi khi gọi server:", error);
+        alert("Lỗi kết nối Server! Vui lòng bật Node.js");
     }
 }
 
 // Hàm gán class CSS để hiện thị dấu chấm
 function showValidMoves(moves) {
-    for (let i = 0; i < moves.length; i++) {
-        const move = moves[i];
-        const targetSquare = document.getElementById(move.id);
-
-        if (targetSquare) {
-            // Nếu là nước ăn quân (isCapture = true), dùng class valid-capture
-            if (move.isCapture) {
-                targetSquare.classList.add('valid-capture');
-            }
-            // Nếu là ô trống, dùng class valid-move
-            else {
-                targetSquare.classList.add('valid-move');
-            }
-        }
-    }
+    return;
 }
 
 // Hàm gửi nước đi lên Node.js và nhận FEN mới từ C++
@@ -275,7 +253,7 @@ async function sendMoveToServer(moveStr) {
 
         // Đợi Node.js trả kết quả (chính là chuỗi FEN từ C++)
         const json = await response.json();
-        const result = json.result;
+        const result = json.move;
 
         // --- PHÂN TÍCH KẾT QUẢ TỪ C++ ---
         if (result.startsWith("CHECKMATE")) {

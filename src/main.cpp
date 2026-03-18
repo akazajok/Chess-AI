@@ -3,7 +3,7 @@
 int main()
 {
     // Chuỗi FEN khởi tạo bàn cờ mặc định
-    std::string defaultFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1";
+    std::string defaultFEN = "2k5/1qq1b3/6p1/8/r7/4B2q/8/4K3 w - - 0 1";
 
     gameManager manager;
     manager.Init_Game(defaultFEN, GameMode::PvP, 20);

@@ -3,8 +3,16 @@
 
 #include <cstdint>
 #include <utility>
+#include <string>
+#include <vector>
 
 class Board;
+
+struct MoveInfor
+{
+    std::string squareId;
+    bool isCapture;
+};
 
 enum class Color : std::uint8_t
 {
@@ -40,6 +48,7 @@ public:
     void Set_Position(int row, int col);      // Hàm sửa tọa độ quân cờ
     // Hàm thuần ảo: Ép các quân cờ con (Xe, Tượng...) phải tự định nghĩa cách đi riêng
     virtual bool Is_Valid_Move(int destRow, int destCol, const Board &grid) = 0;
+    std::vector<MoveInfor> getValidMoves(int row, int col, const Board &grid);
 };
 
 #endif
