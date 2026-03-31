@@ -880,11 +880,7 @@ bool Board::Can_Escape_Check(const int &rowKing, const int &colKing, const Color
         checkCol = colKing + directionColKing[i];
 
         if (Is_Safe_Move(pieceKing, checkRow, checkCol, checkRow, checkCol, colorKing))
-        {
-            std::cout << "có thể thoát chiếu tướng không KING" << '\n';
-            std::cout << checkRow << " " << checkCol << '\n';
             return true;
-        }
     }
 
     // Ăn quân đang chiếu || Chặn đường quân chiếu

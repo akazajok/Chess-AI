@@ -10,7 +10,6 @@ class Bishop : public Piece
 public:
     Bishop(Color color, int row, int col) : Piece(Name::Bishop, color, row, col) {};
     bool Is_Valid_Move(int destRow, int destCol, const Board &grid) override;
-    std::vector<MoveInfor> getValidMoves( int row, int col, const Board& grid);
 };
 
 #endif
