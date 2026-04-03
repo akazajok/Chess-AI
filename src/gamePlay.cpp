@@ -249,8 +249,30 @@ std::string gameManager::Check_Game_State()
 
 std::string gameManager::Process_Web_Move(const std::string &moveStr)
 {
-    if (moveStr == "reset")
+    std::string cmd = to_lower(moveStr);
+
+    if (cmd == "reset")
         return chessGame.GetFen();
+
+    if (cmd == "undo")
+    {
+        if (!chessGame.Undo())
+            return "INVALID";
+
+        // Undo trả board về trước đó => đổi lượt chơi ngược lại
+        chessGame.sideToMove = (chessGame.sideToMove == 'w') ? 'b' : 'w';
+        return Check_Game_State();
+    }
+
+    if (cmd == "redo")
+    {
+        if (!chessGame.Redo())
+            return "INVALID";
+
+        // Redo tái thực hiện 1 nước => lượt lại đổi như lúc đi nước đó
+        chessGame.sideToMove = (chessGame.sideToMove == 'w') ? 'b' : 'w';
+        return Check_Game_State();
+    }
 
     // 1: Cập nhật tọa độ Vua cho class để hàm Is_Valid_Input không bị lỗi -1,-1
     rowKing = (chessGame.sideToMove == 'w') ? chessGame.rowKingWhite : chessGame.rowKingBlack;
@@ -273,3 +295,4 @@ std::string gameManager::Process_Web_Move(const std::string &moveStr)
     // 4: Gọi hàm kiểm tra cục diện cho phe vừa được nhường lượt
     return Check_Game_State();
 }
+
