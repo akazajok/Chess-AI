@@ -152,14 +152,7 @@ async function handleNewGame() {
     }
 }
 
-// Xóa gợi ý nước đi
-function clearHighlights() {
-    const allSquares = document.querySelectorAll('.square');
-    for (let i = 0; i < allSquares.length; ++i) {
-        allSquares[i].classList.remove('valid-move', 'valid-capture');
-    }
-}
-
+// Xử lí sự kiện bấm quân cờ 
 function handleSquareClick(squareId) {
     // lấy ô đang được click - ô hiện tại
     const clickSquare = document.getElementById(squareId);
@@ -190,6 +183,13 @@ function handleSquareClick(squareId) {
         else // click vào ô khác
         {
             const moveString = oldSquare.id + clickSquare.id; // VD: "e2e4"
+            const targetSquareId = squareId;
+
+            // Show bảng chọn quân phong hậu 
+            // selectedSquare - vị trí bắt đầu, targetSquareId - vị trí đích
+            // if (isPromotionMove(selectedSquare, targetSquareId))
+            //     showPromotionModal(selectedSquare, targetSquareId);
+
             sendMoveToServer(moveString);
 
             // DỌN DẸP SAU KHI ĐI:
@@ -224,6 +224,15 @@ async function getValidMovesFromServer(squareId) {
         alert("Lỗi kết nối Server! Vui lòng bật Node.js");
     }
 }
+
+// Xóa gợi ý nước đi
+function clearHighlights() {
+    const allSquares = document.querySelectorAll('.square');
+    for (let i = 0; i < allSquares.length; ++i) {
+        allSquares[i].classList.remove('valid-move', 'valid-capture');
+    }
+}
+
 
 // Hàm gán class CSS để hiển thị gợi ý nước đi
 function showValidMoves(moves) {

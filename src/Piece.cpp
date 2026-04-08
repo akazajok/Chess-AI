@@ -24,32 +24,3 @@ void Piece::Set_Position(int row, int col)
     this->row = row;
     this->col = col;
 }
-
-std::vector<MoveInfor> Piece::getValidMoves(int row, int col, Board &grid)
-{
-    std::vector<MoveInfor> validMoves;
-    Piece *piece = grid.Get_Piece_At(row, col);
-
-    for (int r = 0; r < 8; ++r)
-    {
-        for (int c = 0; c < 8; ++c)
-        {
-            if (grid.Can_Move(row, col, r, c))
-            {
-                Piece *target = grid.Get_Piece_At(r, c);
-                std::string id = convert_from_XY(r, c);
-
-                if (!target)
-                {
-                    validMoves.push_back({id, false});
-                }
-                else
-                {
-                    if (target->Get_Color() != piece->Get_Color())
-                        validMoves.push_back({id, true});
-                }
-            }
-        }
-    }
-    return validMoves;
-}

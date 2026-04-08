@@ -25,6 +25,13 @@ class gameManager;
 #include "../include/Queen.h"
 #include "../include/King.h"
 
+struct MoveInfor
+{
+    std::string squareId;
+    bool isCapture;
+    bool isPromotion;
+};
+
 using BoardGrid = std::array<std::array<std::unique_ptr<Piece>, 8>, 8>;
 
 class Board
@@ -50,7 +57,8 @@ private:
     bool IsPromotion(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
     void ExecutePromotion(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
     void ExecutePromotionWithPiece(const int &startRow, const int &startCol, const int &destRow, const int &destCol, Name promotionPiece); // Dùng cho redo
-    Name GetPromotionChoice(); // Prompt user input
+    Name GetPromotionChoice();
+    // Prompt user input
     //=========Castling Tracker=========//
     struct CastlingFlags
     {
@@ -72,7 +80,6 @@ private:
     // ăn tốt qua đường
     bool IsEnPassantMove(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
     void ExecuteEnPassant(const int &startRow, const int &startCol, const int &destRow, const int &destCol);
-    
 
     //==========Move History============//
     struct MoveRecord
@@ -126,6 +133,9 @@ public:
 
     // Hòa do luật 50 nước
     bool Is_Draw_By_50_Moves();
+
+    // Lấy các nước đi hợp lệ
+    std::vector<MoveInfor> getValidMoves(int row, int col);
 
     // Hàm lấy dữ liệu quân cờ
     Piece *Get_Piece_At(int row, int col) const

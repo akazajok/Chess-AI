@@ -435,8 +435,13 @@ void Board::ExecuteSpecialMove(const int &startRow, const int &startCol, const i
 bool Board::IsPromotion(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
     Piece *piece = Get_Piece_At(startRow, startCol);
+    Piece *target = Get_Piece_At(destRow, destCol);
     if (!piece || piece->Get_Name() != Name::Pawn)
         return false; // check xem có phải quân tốt không
+
+    if (!piece->Is_Valid_Move(destRow, destCol, *this))
+        return false;
+
     if (piece->Get_Color() == Color::White)
     {
         return startRow == 1 && destRow == 0;
@@ -446,6 +451,7 @@ bool Board::IsPromotion(const int &startRow, const int &startCol, const int &des
         return startRow == 6 && destRow == 7;
     }
 }
+
 void Board::ExecutePromotion(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
     Piece *pawn = Get_Piece_At(startRow, startCol);
@@ -489,7 +495,6 @@ Name Board::GetPromotionChoice()
     case 'N':
         return Name::Knight;
     default:
-        // std::cout << "Sai Syntax, Auto Queen nha";
         return Name::Queen;
     }
 }
@@ -1093,6 +1098,39 @@ bool Board::Is_Draw_By_50_Moves()
     return false;
 }
 //-------------------------------------------------------------------------------------------------
+
+std::vector<MoveInfor> Board::getValidMoves(int row, int col)
+{
+    std::vector<MoveInfor> validMoves;
+    Piece *piece = Get_Piece_At(row, col);
+    if (!piece)
+        return validMoves;
+
+    for (int r = 0; r < 8; ++r)
+    {
+        for (int c = 0; c < 8; ++c)
+        {
+            bool isCapture = false, isPromotion = false;
+            if (Can_Move(row, col, r, c))
+            {
+                if (IsPromotion(row, col, r, c))
+                {
+                    isPromotion = true;
+                }
+                Piece *target = Get_Piece_At(r, c);
+                std::string id = convert_from_XY(r, c);
+
+                if (target)
+                {
+                    if (target->Get_Color() != piece->Get_Color())
+                        isCapture = true;
+                }
+                validMoves.push_back({id, isCapture, isPromotion});
+            }
+        }
+    }
+    return validMoves;
+}
 
 // Hàm hiển thị để kiểm tra
 void Board::Display()

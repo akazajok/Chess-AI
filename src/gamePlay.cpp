@@ -272,7 +272,7 @@ std::string gameManager::Process_Web_Move(const std::string &moveStr)
 
         if (piece)
         {
-            std::vector<MoveInfor> moves = piece->getValidMoves(pos.first, pos.second, chessGame);
+            std::vector<MoveInfor> moves = chessGame.getValidMoves(pos.first, pos.second);
 
             // Xây dựng chuỗi JSON
             std::string jsonResult = "[";
