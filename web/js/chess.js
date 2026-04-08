@@ -107,6 +107,7 @@ function loadFen(fenString) {
     }
 }
 //===================New game function===============//
+
 // Xóa toàn bộ quân trên bàn cờ
 function clearBoardPieces() {
     const pieceImgs = document.querySelectorAll('.square img');
@@ -151,17 +152,6 @@ async function handleNewGame() {
     }
 }
 
-// Xóa toàn bộ quân cờ 
-function clearFen() {
-    const allSquares = document.querySelectorAll('.square');
-    for (let i = 0; i < allSquares.length; ++i) {
-        const square = allSquares[i];
-        const piece = square.querySelector('img');
-        if (piece)
-            square.removeChild(piece);
-    }
-}
-
 // Xóa gợi ý nước đi
 function clearHighlights() {
     const allSquares = document.querySelectorAll('.square');
@@ -184,7 +174,8 @@ function handleSquareClick(squareId) {
             // đổi màu quân cờ đang được click
             clickSquare.classList.add('selected');
 
-            //getValidMovesFromServer(squareId);
+            // Gọi Node.js để hỏi C++ các nước đi hợp lệ của quân này
+            getValidMovesFromServer(squareId);
         }
     }
     else {
@@ -211,32 +202,52 @@ function handleSquareClick(squareId) {
 }
 
 // Hàm gửi yêu cầu lấy nước đi và hiển thị
-// async function getValidMovesFromServer(squareId) {
-//     try {
-//         // Gọi API của Node.js
-//         // await nghĩa là "đợi ở đây cho đến khi có phản hồi thì mới chạy tiếp dòng dưới".
-//         const response = await fetch('http://localhost:3000/api/getValidMoves', {
-//             method: 'POST', // Phương thức POST giống với app.post bên sever.js
-//             headers: {
-//                 'Content-Type': 'application/json' // Báo cho server biết mình gửi dạng JSON
-//             },
-//             body: JSON.stringify({ data: squareId }) // Đóng gói dữ liệu: { "data": "e2" }
-//         });
-//         // Đợi Node.js trả kết quả 
-//         const json = await response.json();
+async function getValidMovesFromServer(squareId) {
+    try {
+        // Gọi API của Node.js
+        // await nghĩa là "đợi ở đây cho đến khi có phản hồi thì mới chạy tiếp dòng dưới".
+        const response = await fetch('http://localhost:3000/api/getValidMoves', {
+            method: 'POST', // Phương thức POST giống với app.post bên sever.js
+            headers: {
+                'Content-Type': 'application/json' // Báo cho server biết mình gửi dạng JSON
+            },
+            body: JSON.stringify({ data: squareId }) // Đóng gói dữ liệu: { "data": "e2" }
+        });
+        // Đợi Node.js trả kết quả 
+        const json = await response.json();
+        const result = json.validMoves;
 
-//         showValidMoves(json.validMoves);
+        showValidMoves(result);
 
-//     } catch (error) {
-//         console.error("Lỗi khi gọi server:", error);
-//         alert("Lỗi kết nối Server! Vui lòng bật Node.js");
-//     }
-// }
+    } catch (error) {
+        console.error("Lỗi khi gọi server:", error);
+        alert("Lỗi kết nối Server! Vui lòng bật Node.js");
+    }
+}
 
-// Hàm gán class CSS để hiện thị dấu chấm
-// function showValidMoves(moves) {
-//     return;
-// }
+// Hàm gán class CSS để hiển thị gợi ý nước đi
+function showValidMoves(moves) {
+    // 1. Nếu C++ không trả về gì, hoặc mảng rỗng thì thoát luôn
+    if (!moves || moves.length === 0) return;
+
+    // 2. Duyệt qua từng object MoveInfor trong mảng
+    moves.forEach(moveInfo => {
+        // Lấy con trỏ tới ô cờ trên giao diện dựa vào ID do C++ gửi lên (VD: "e4")
+        const squareElement = document.getElementById(moveInfo.squareId);
+
+        // Kiểm tra an toàn xem ô cờ có thực sự tồn tại trên màn hình không
+        if (squareElement) {
+            // 3. Tin tưởng hoàn toàn vào C++: Kiểm tra biến isCapture
+            if (moveInfo.isCapture === true) {
+                // Nếu C++ báo đây là nước ăn quân -> Bật vòng tròn đỏ
+                squareElement.classList.add('valid-capture');
+            } else {
+                // Nếu không phải ăn quân -> Bật dấu chấm mờ báo hiệu di chuyển
+                squareElement.classList.add('valid-move');
+            }
+        }
+    });
+}
 
 // Hàm gửi nước đi lên Node.js và nhận FEN mới từ C++
 async function sendMoveToServer(moveStr) {
@@ -281,7 +292,7 @@ async function sendMoveToServer(moveStr) {
             return;
         }
 
-        clearFen();
+        clearBoardPieces();
         loadFen(currentFEN);
 
     } catch (error) {

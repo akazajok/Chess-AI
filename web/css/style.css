@@ -243,7 +243,7 @@ body {
     content: '';
     width: 18px;
     height: 18px;
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgb(27, 226, 9);
     /* Dấu chấm đen mờ */
     border-radius: 50%;
     position: absolute;
@@ -251,15 +251,18 @@ body {
 }
 
 /* Vòng tròn hiển thị những ô có thể ĐÁNH/ĂN QUÂN */
+/* Vòng tròn hiển thị những ô có thể ĐÁNH/ĂN QUÂN */
 .square.valid-capture::after {
     content: '';
     width: 62px;
     height: 62px;
-    border: 5px solid rgba(0, 0, 0, 0.2);
-    /* Viền tròn mờ */
+    border: 5px solid rgba(255, 68, 68, 0.6);
     border-radius: 50%;
     position: absolute;
-    z-index: 1;
+    z-index: 3;
+    /* <--- SỬA THÀNH 3 ĐỂ ĐÈ LÊN QUÂN CỜ (z-index: 2) */
+    pointer-events: none;
+    /* Thêm dòng này để lỡ click trúng viền thì vẫn xuyên xuống ô cờ */
 }
 
 /* Ô Vua bị chiếu đỏ */

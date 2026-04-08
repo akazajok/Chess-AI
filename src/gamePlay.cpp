@@ -265,6 +265,34 @@ std::string gameManager::Check_Game_State()
 
 std::string gameManager::Process_Web_Move(const std::string &moveStr)
 {
+    if (moveStr.size() == 2)
+    {
+        std::pair<int, int> pos = convert_to_XY(moveStr);
+        Piece *piece = chessGame.Get_Piece_At(pos.first, pos.second);
+
+        if (piece)
+        {
+            std::vector<MoveInfor> moves = piece->getValidMoves(pos.first, pos.second, chessGame);
+
+            // Xây dựng chuỗi JSON
+            std::string jsonResult = "[";
+            for (size_t i = 0; i < moves.size(); ++i)
+            {
+                jsonResult += "{\"squareId\":\"" + moves[i].squareId + "\",\"isCapture\":" + (moves[i].isCapture ? "true" : "false") + "}";
+                if (i < moves.size() - 1)
+                    jsonResult += ",";
+            }
+            jsonResult += "]";
+
+            // LẬP TỨC TRẢ VỀ CHUỖI JSON (Ngăn code chạy tiếp xuống dưới)
+            return jsonResult;
+        }
+        else
+        {
+            return "[]"; // Trả về mảng rỗng nếu click vào ô không có quân
+        }
+    }
+
     if (moveStr == "reset")
         return chessGame.GetFen();
 

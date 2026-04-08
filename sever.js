@@ -70,13 +70,14 @@ app.post('/api/move', (req, res) => {
     chessEngine.stdin.write(data + '\n');
 });
 
+// Hiển thị nước đi hợp lệ quân cờ khi lần đầu ấn vào 
 app.post('/api/getValidMoves', (req, res) => {
     const squareId = req.body.data;
     console.log('[Web] Đang hỏi C++ nước đi hợp lệ cho ô: ${squareId}');
 
     currentResponse = res;
     // gửi xuống c++
-    chessEngine.stdin.write("get valid moves : " + squareId + '\n');
+    chessEngine.stdin.write(squareId + '\n');
 });
 
 // Reset ván mới: respawn engine và trả về FEN mặc định
@@ -84,7 +85,7 @@ app.post('/api/newgame', (req, res) => {
     console.log(`[Web] yêu cầu New Game`);
     startEngine();
     // Engine khi khởi động sẽ chờ nước đi đầu tiên, FEN mặc định trong main.cpp
-    const defaultFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    const defaultFEN = "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1";
     res.json({ result: defaultFEN });
 });
 

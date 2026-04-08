@@ -25,7 +25,7 @@ void Piece::Set_Position(int row, int col)
     this->col = col;
 }
 
-std::vector<MoveInfor> Piece::getValidMoves(int row, int col, const Board &grid)
+std::vector<MoveInfor> Piece::getValidMoves(int row, int col, Board &grid)
 {
     std::vector<MoveInfor> validMoves;
     Piece *piece = grid.Get_Piece_At(row, col);
@@ -34,7 +34,7 @@ std::vector<MoveInfor> Piece::getValidMoves(int row, int col, const Board &grid)
     {
         for (int c = 0; c < 8; ++c)
         {
-            if (piece->Is_Valid_Move(r, c, grid))
+            if (grid.Can_Move(row, col, r, c))
             {
                 Piece *target = grid.Get_Piece_At(r, c);
                 std::string id = convert_from_XY(r, c);
@@ -51,6 +51,5 @@ std::vector<MoveInfor> Piece::getValidMoves(int row, int col, const Board &grid)
             }
         }
     }
-
     return validMoves;
 }
