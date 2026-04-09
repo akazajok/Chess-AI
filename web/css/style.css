@@ -502,40 +502,76 @@ body {
 }
 
 /* Khối các ô chọn quân để phong cấp (Hậu, Xe, Mã, Tượng) */
-.promotion-choices {
-    display: flex;
-    gap: 14px;
-}
 
-.promotion-choice {
-    width: 80px;
-    height: 80px;
+#promotion-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    /* Nền tối mờ */
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    font-size: 46px;
-    background: #0f1a30;
-    border: 2px solid #333;
-    border-radius: 14px;
+    z-index: 1000;
+    /* Đảm bảo nổi lên trên cùng */
+}
+
+/* Class dùng để ẩn modal */
+#promotion-modal.hidden {
+    display: none !important;
+}
+
+.promotion-content {
+    background: white;
+    padding: 30px 40px;
+    /* Cũ: 20px -> Tăng không gian bên trong hộp, nhìn thoáng hơn */
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    /* Đổ bóng sâu hơn để hộp nổi bật */
+    min-width: 400px;
+    /* Thêm chiều rộng tối thiểu để hộp không bị quá hẹp */
+}
+
+.promotion-content h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    /* Đẩy các quân cờ xuống một chút để không bị sát chữ */
+    color: #333;
+    font-family: sans-serif;
+    font-size: 24px;
+    /* Cũ: (mặc định) -> Ép chữ to lên 24px */
+}
+
+#promotion-choices {
+    display: flex;
+    gap: 25px;
+    /* Cũ: 15px -> Tăng khoảng cách giữa các quân cờ để tránh click nhầm */
+    margin-top: 15px;
+    justify-content: center;
+    /* Đảm bảo các quân cờ luôn nằm giữa hộp */
+}
+
+.promotion-piece {
+    width: 90px;
+    /* Cũ: 60px -> Tăng kích thước ảnh quân cờ lên gấp rưỡi */
+    height: 90px;
+    /* Cũ: 60px */
     cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
+    border: 4px solid transparent;
+    /* Cũ: 3px -> Viền khi hover cũng dày hơn một chút cho cân đối */
+    border-radius: 8px;
+    transition: transform 0.2s, border-color 0.2s, background-color 0.2s;
 }
 
-.promotion-choice:hover {
-    background: #1a5276;
-    border-color: #4fc3f7;
-    transform: scale(1.12);
-    box-shadow: 0 4px 20px rgba(79, 195, 247, 0.3);
-}
-
-.promotion-choice .promo-label {
-    font-size: 10px;
-    color: #888;
-    margin-top: 2px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+.promotion-piece:hover {
+    transform: scale(1.15);
+    /* Cũ: 1.1 -> Phóng to nhiều hơn một chút khi chuột đưa vào */
+    border-color: #4CAF50;
+    background-color: rgba(76, 175, 80, 0.1);
+    /* Thêm một lớp nền xanh nhạt nhẹ khi hover cho đẹp mắt */
 }
 
 /* ====== KHU VỰC CÀI ĐẶT CHẾ ĐỘ CHƠI (GAME MODE PANEL) ====== */

@@ -265,6 +265,8 @@ std::string gameManager::Check_Game_State()
 
 std::string gameManager::Process_Web_Move(const std::string &moveStr)
 {
+
+    // Lấy các nước đi hợp lệ
     if (moveStr.size() == 2)
     {
         std::pair<int, int> pos = convert_to_XY(moveStr);
@@ -278,7 +280,11 @@ std::string gameManager::Process_Web_Move(const std::string &moveStr)
             std::string jsonResult = "[";
             for (size_t i = 0; i < moves.size(); ++i)
             {
-                jsonResult += "{\"squareId\":\"" + moves[i].squareId + "\",\"isCapture\":" + (moves[i].isCapture ? "true" : "false") + "}";
+                jsonResult += "{\"squareId\":\"" + moves[i].squareId + "\",";
+                jsonResult += "\"isCapture\":" + std::string(moves[i].isCapture ? "true" : "false") + ",";
+                jsonResult += "\"isPromotion\":" + std::string(moves[i].isPromotion ? "true" : "false");
+                jsonResult += "}";
+
                 if (i < moves.size() - 1)
                     jsonResult += ",";
             }
@@ -293,23 +299,25 @@ std::string gameManager::Process_Web_Move(const std::string &moveStr)
         }
     }
 
+    // Nút f5 thì newgame luôn
     if (moveStr == "reset")
         return chessGame.GetFen();
 
-    // 1: Cập nhật tọa độ Vua cho class để hàm Is_Valid_Input không bị lỗi -1,-1
+    // Cập nhật tọa độ Vua cho class để hàm Is_Valid_Input không bị lỗi -1,-1
     rowKing = (chessGame.sideToMove == 'w') ? chessGame.rowKingWhite : chessGame.rowKingBlack;
     colKing = (chessGame.sideToMove == 'w') ? chessGame.colKingWhite : chessGame.colKingBlack;
     colorKing = (chessGame.sideToMove == 'w') ? Color::White : Color::Black;
 
-    // 2: Kiểm tra nước đi có đúng luật không
+    // Đi bình thường
     if (!Is_Valid_Input(moveStr))
-    {
         return "INVALID";
-    }
 
     // 3: Thực hiện nước đi
     std::pair<int, int> start = convert_to_XY(moveStr.substr(0, 2));
     std::pair<int, int> dest = convert_to_XY(moveStr.substr(2, 2));
+
+    if (moveStr.size() == 5)
+        chessGame.piecePromotion = tolower(moveStr[4]);
 
     // Hàm này chạy xong sẽ TỰ ĐỘNG đổi chessGame.sideToMove sang phe đối thủ
     chessGame.Execute_Move(start.first, start.second, dest.first, dest.second);

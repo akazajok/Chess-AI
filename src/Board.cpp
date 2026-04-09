@@ -451,7 +451,6 @@ bool Board::IsPromotion(const int &startRow, const int &startCol, const int &des
         return startRow == 6 && destRow == 7;
     }
 }
-
 void Board::ExecutePromotion(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
     Piece *pawn = Get_Piece_At(startRow, startCol);
@@ -479,26 +478,37 @@ void Board::ExecutePromotion(const int &startRow, const int &startCol, const int
 }
 Name Board::GetPromotionChoice()
 {
-    // std::cout << "Phong hau | Chon quan | Q/R/B/N" << std::endl;
-    char choice;
-    std::cin >> choice;
-    choice = toupper(choice);
+    // Ép kiểu về chữ IN HOA để switch case hoạt động đúng
+    char choice = std::toupper(piecePromotion);
 
+    Name resultName; // Tạo một biến tạm để lưu kết quả
+
+    // Gán kết quả vào biến tạm thay vì return luôn
     switch (choice)
     {
     case 'Q':
-        return Name::Queen;
+        resultName = Name::Queen;
+        break;
     case 'R':
-        return Name::Rook;
+        resultName = Name::Rook;
+        break;
     case 'B':
-        return Name::Bishop;
+        resultName = Name::Bishop;
+        break;
     case 'N':
-        return Name::Knight;
+        resultName = Name::Knight;
+        break;
     default:
-        return Name::Queen;
+        resultName = Name::Queen;
+        break;
     }
-}
 
+    // RESET BIẾN (Vì hàm chưa bị return)
+    piecePromotion = ' ';
+
+    // Trả về kết quả
+    return resultName;
+}
 void Board::ExecutePromotionWithPiece(const int &startRow, const int &startCol, const int &destRow, const int &destCol, Name promotionPiece)
 {
     Piece *pawn = Get_Piece_At(startRow, startCol);
@@ -683,7 +693,6 @@ void Board::UpdateCastlingRights()
     if (castlingRights.empty())
         castlingRights = "-";
 }
-
 void Board::UndoCastling(const int &destRow, const int &destCol, const int &startRow, const int &startCol)
 {
     Update_Position(destRow, destCol, startRow, startCol);
@@ -723,7 +732,6 @@ void Board::ExecuteEnPassant(const int &startRow, const int &startCol, const int
     grid[startRow][destCol] = nullptr;
     enPassantTarget = "-";
 }
-
 void Board::UndoEnPassant(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
     // quân Tốt bị ăn nằm ở cùng hàng với quân đi

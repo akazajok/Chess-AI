@@ -1,4 +1,3 @@
-
 const boardElement = document.getElementById('chess-board');
 const rowLabelsLeft = document.getElementById('row-labels-left');
 const rowLabelsRight = document.getElementById('row-labels-right');
@@ -13,6 +12,8 @@ const pieceImages = {
 
 let currentFEN = "";
 let selectedSquare = null; // Lưu ID ô đang chọn (VD: 'e2')
+let pendingPromotionMove = null; // Lưu tọa độ nước đi đang bị "chặn" lại để đợi chọn quân
+let validMoves = []; // Lưu các nước đi hợp lệ
 
 
 //==============Section ID cần thiết implement==========//
@@ -108,12 +109,6 @@ function loadFen(fenString) {
 }
 //===================New game function===============//
 
-// Xóa toàn bộ quân trên bàn cờ
-function clearBoardPieces() {
-    const pieceImgs = document.querySelectorAll('.square img');
-    pieceImgs.forEach(img => img.remove());
-}
-
 // Reset các panel phụ trợ
 function resetSidePanels() {
     if (moveListEl) moveListEl.innerHTML = ''; //rêset history
@@ -164,6 +159,7 @@ function handleSquareClick(squareId) {
     if (selectedSquare === null) {
         if (pieceInSquare) {
             selectedSquare = squareId;
+
             // đổi màu quân cờ đang được click
             clickSquare.classList.add('selected');
 
@@ -185,17 +181,31 @@ function handleSquareClick(squareId) {
             const moveString = oldSquare.id + clickSquare.id; // VD: "e2e4"
             const targetSquareId = squareId;
 
-            // Show bảng chọn quân phong hậu 
-            // selectedSquare - vị trí bắt đầu, targetSquareId - vị trí đích
-            // if (isPromotionMove(selectedSquare, targetSquareId))
-            //     showPromotionModal(selectedSquare, targetSquareId);
+            const moveObj = validMoves.find(m => m.squareId === targetSquareId);
 
-            sendMoveToServer(moveString);
+            if (moveObj) {
+                if (moveObj.isPromotion) {
+                    // --- CÁCH MỚI: XÁC ĐỊNH MÀU DỰA VÀO TỌA ĐỘ ĐÍCH ---
+                    // targetSquareId có dạng "e8", "a1", v.v.
+                    const targetRank = targetSquareId.charAt(1); // Lấy ký tự số (hàng)
+
+                    let pieceColor = 'w'; // Mặc định
+                    if (targetRank === '8')
+                        pieceColor = 'w'; // Tốt tiến lên hàng 8 -> Tốt Trắng
+                    else if (targetRank === '1')
+                        pieceColor = 'b'; // Tốt tiến xuống hàng 1 -> Tốt Đen
+
+                    showPromotionModal(selectedSquare, targetSquareId, pieceColor);
+                } else {
+                    // --- LUỒNG ĐI BÌNH THƯỜNG ---
+                    const finalMove = selectedSquare + targetSquareId;
+                    sendMoveToServer(finalMove);
+                }
+            }
 
             // DỌN DẸP SAU KHI ĐI:
             oldSquare.classList.remove('selected'); // Tắt hiệu ứng sáng ở ô cũ
             selectedSquare = null; // Trả hệ thống về Trạng thái 0 chờ nước đi tiếp theo
-
             clearHighlights();
         }
     }
@@ -215,47 +225,14 @@ async function getValidMovesFromServer(squareId) {
         });
         // Đợi Node.js trả kết quả 
         const json = await response.json();
-        const result = json.validMoves;
+        validMoves = json.validMoves;
 
-        showValidMoves(result);
+        showValidMoves(validMoves);
 
     } catch (error) {
         console.error("Lỗi khi gọi server:", error);
         alert("Lỗi kết nối Server! Vui lòng bật Node.js");
     }
-}
-
-// Xóa gợi ý nước đi
-function clearHighlights() {
-    const allSquares = document.querySelectorAll('.square');
-    for (let i = 0; i < allSquares.length; ++i) {
-        allSquares[i].classList.remove('valid-move', 'valid-capture');
-    }
-}
-
-
-// Hàm gán class CSS để hiển thị gợi ý nước đi
-function showValidMoves(moves) {
-    // 1. Nếu C++ không trả về gì, hoặc mảng rỗng thì thoát luôn
-    if (!moves || moves.length === 0) return;
-
-    // 2. Duyệt qua từng object MoveInfor trong mảng
-    moves.forEach(moveInfo => {
-        // Lấy con trỏ tới ô cờ trên giao diện dựa vào ID do C++ gửi lên (VD: "e4")
-        const squareElement = document.getElementById(moveInfo.squareId);
-
-        // Kiểm tra an toàn xem ô cờ có thực sự tồn tại trên màn hình không
-        if (squareElement) {
-            // 3. Tin tưởng hoàn toàn vào C++: Kiểm tra biến isCapture
-            if (moveInfo.isCapture === true) {
-                // Nếu C++ báo đây là nước ăn quân -> Bật vòng tròn đỏ
-                squareElement.classList.add('valid-capture');
-            } else {
-                // Nếu không phải ăn quân -> Bật dấu chấm mờ báo hiệu di chuyển
-                squareElement.classList.add('valid-move');
-            }
-        }
-    });
 }
 
 // Hàm gửi nước đi lên Node.js và nhận FEN mới từ C++
@@ -309,6 +286,46 @@ async function sendMoveToServer(moveStr) {
         alert("Lỗi kết nối Server! Vui lòng bật Node.js");
     }
 }
+//============================================================= CLEAR UI =================================================
+// Xóa toàn bộ quân trên bàn cờ
+function clearBoardPieces() {
+    const pieceImgs = document.querySelectorAll('.square img');
+    pieceImgs.forEach(img => img.remove());
+}
+
+// Xóa gợi ý nước đi
+function clearHighlights() {
+    const allSquares = document.querySelectorAll('.square');
+    for (let i = 0; i < allSquares.length; ++i) {
+        allSquares[i].classList.remove('valid-move', 'valid-capture');
+    }
+}
+//=========================================================================================================================
+
+//============================================================= Show UI ====================================================
+// Hàm gán class CSS để hiển thị gợi ý nước đi
+function showValidMoves(moves) {
+    // 1. Nếu C++ không trả về gì, hoặc mảng rỗng thì thoát luôn
+    if (!moves || moves.length === 0) return;
+
+    // 2. Duyệt qua từng object MoveInfor trong mảng
+    moves.forEach(moveInfo => {
+        // Lấy con trỏ tới ô cờ trên giao diện dựa vào ID do C++ gửi lên (VD: "e4")
+        const squareElement = document.getElementById(moveInfo.squareId);
+
+        // Kiểm tra an toàn xem ô cờ có thực sự tồn tại trên màn hình không
+        if (squareElement) {
+            // 3. Tin tưởng hoàn toàn vào C++: Kiểm tra biến isCapture
+            if (moveInfo.isCapture === true) {
+                // Nếu C++ báo đây là nước ăn quân -> Bật vòng tròn đỏ
+                squareElement.classList.add('valid-capture');
+            } else {
+                // Nếu không phải ăn quân -> Bật dấu chấm mờ báo hiệu di chuyển
+                squareElement.classList.add('valid-move');
+            }
+        }
+    });
+}
 
 function showGameOver(winner, reason) {
     // 1. Dòng này sẽ xóa chữ "Trắng thắng!" đi và thay bằng chữ bạn truyền vào
@@ -320,6 +337,55 @@ function showGameOver(winner, reason) {
     // 3. Bật bảng thông báo lên
     document.getElementById('game-over-modal').classList.add('active');
 }
+
+// Hàm hiển thị bảng chọn quân
+function showPromotionModal(source, target, pieceColor) {
+    const modal = document.getElementById('promotion-modal');
+    const choicesContainer = document.getElementById('promotion-choices');
+
+    // Lưu lại nước đi để dùng sau khi người dùng chọn xong
+    pendingPromotionMove = { source: source, target: target };
+
+    // Sinh ra mã HTML cho 4 quân cờ dựa trên màu (w hoặc b)
+    // Đường dẫn ảnh ăn khớp với thư mục web/piece/ của bạn
+    choicesContainer.innerHTML = `
+        <img src="piece/${pieceColor}Q.jpg" class="promotion-piece" data-piece="q" title="Hậu">
+        <img src="piece/${pieceColor}R.jpg" class="promotion-piece" data-piece="r" title="Xe">
+        <img src="piece/${pieceColor}B.jpg" class="promotion-piece" data-piece="b" title="Tượng">
+        <img src="piece/${pieceColor}N.jpg" class="promotion-piece" data-piece="n" title="Mã">
+    `;
+
+    // Hiển thị modal
+    modal.classList.remove('hidden');
+
+    // Lắng nghe sự kiện click vào từng ảnh
+    const pieces = choicesContainer.querySelectorAll('.promotion-piece');
+    pieces.forEach(img => {
+        img.onclick = function () {
+            const chosenPiece = this.getAttribute('data-piece'); // Lấy chữ 'q', 'r', 'b', hoặc 'n'
+            submitPromotion(chosenPiece);
+        };
+    });
+}
+
+// Hàm gửi nước đi sau khi đã chọn xong
+function submitPromotion(promotedTo) {
+    const modal = document.getElementById('promotion-modal');
+    modal.classList.add('hidden'); // Ẩn modal đi
+
+    if (pendingPromotionMove) {
+        // Ghép chuỗi nước đi, ví dụ: e7 + e8 + q => "e7e8q"
+        const finalMove = pendingPromotionMove.source + pendingPromotionMove.target + promotedTo;
+
+        // Phong hậu
+        sendMoveToServer(finalMove);
+
+        pendingPromotionMove = null; // Xóa trạng thái chờ
+    }
+}
+
+//===========================================================================================================================
+
 
 // Chạy ngay khi web vừa load/F5
 sendMoveToServer("reset");

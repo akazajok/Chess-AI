@@ -41,6 +41,7 @@ class Board
 private:
     BoardGrid grid;
 
+    char piecePromotion;                      // Quân phong hậu
     char sideToMove;                          // Ai là người đi
     std::string castlingRights;               // Quyền nhập thành ( vua, xe chưa di chuyển )
     std::string enPassantTarget;              // Bắt tốt qua đường
