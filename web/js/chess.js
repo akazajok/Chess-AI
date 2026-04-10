@@ -379,7 +379,6 @@ function submitPromotion(promotedTo) {
 
         // Phong hậu
         sendMoveToServer(finalMove);
-
         pendingPromotionMove = null; // Xóa trạng thái chờ
     }
 }

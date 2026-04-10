@@ -65,7 +65,6 @@ void Board::Set_Up_Board(std::string &FEN)
         }
     }
 }
-
 char Board::GetPieceChar(Piece *piece)
 {
     if (!piece)
@@ -152,6 +151,7 @@ bool Board::Can_Move(const int &startRow, const int &startCol, const int &destRo
     // Nước đi đặc biệt
     if (SpecialMove(startRow, startCol, destRow, destCol))
         return true;
+
     // kiểm tra biên
     if (destRow < 0 || destRow > 7 || destCol < 0 || destCol > 7)
         return false;
@@ -186,7 +186,6 @@ bool Board::Can_Move(const int &startRow, const int &startCol, const int &destRo
 
     return true;
 }
-
 // Thực thi di chuyển quân cờ
 void Board::Execute_Move(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
@@ -197,16 +196,18 @@ void Board::Execute_Move(const int &startRow, const int &startCol, const int &de
     Name movingName = movingPiece->Get_Name();
     bool isPawnDoubleMove = (movingName == Name::Pawn && abs(destRow - startRow) == 2);
     bool isEnPassant = IsEnPassantMove(startRow, startCol, destRow, destCol);
+    bool isCastling = IsCastlingMove(startRow, startCol, destRow, destCol);
+    bool isPromotionMove = IsPromotion(startRow, startCol, destRow, destCol);
 
     // LƯU LẠI LỊCH SỬ TRƯỚC KHI THAY ĐỔI
     SaveMoveToHistory(startRow, startCol, destRow, destCol);
 
     // THỰC HIỆN NƯỚC ĐI
-    if (IsCastlingMove(startRow, startCol, destRow, destCol) || isEnPassant)
+    if (isCastling || isEnPassant)
     {
         ExecuteSpecialMove(startRow, startCol, destRow, destCol);
     }
-    else if (IsPromotion(startRow, startCol, destRow, destCol))
+    else if (isPromotionMove)
     {
         ExecutePromotion(startRow, startCol, destRow, destCol);
     }
@@ -237,7 +238,6 @@ void Board::Execute_Move(const int &startRow, const int &startCol, const int &de
     // Đổi lượt người chơi
     sideToMove = (sideToMove == 'w') ? 'b' : 'w';
 }
-
 // Hàm cập nhật di chuyển quân cờ, ăn quân địch
 void Board::Update_Position(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
@@ -741,6 +741,7 @@ void Board::UndoEnPassant(const int &startRow, const int &startCol, const int &d
 
     Update_Position(destRow, destCol, startRow, startCol);
 }
+//======================================================================
 
 // lấy quân đang chặn đường || chiếu tướng
 Piece *Board::Get_Piece_On_Path(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
@@ -769,7 +770,6 @@ Piece *Board::Get_Piece_On_Path(const int &startRow, const int &startCol, const 
     }
     return nullptr;
 }
-
 // lấy quân đang chiếu tướng
 Piece *Board::Get_Checking_Piece(const int &rowKing, const int &colKing, const Color &colorKing)
 {
@@ -876,7 +876,6 @@ Piece *Board::Get_Checking_Piece(const int &rowKing, const int &colKing, const C
     }
     return pieceCheck;
 }
-
 // có thể thoát chiếu tướng không
 bool Board::Can_Escape_Check(const int &rowKing, const int &colKing, const Color &colorKing)
 {
@@ -934,7 +933,6 @@ bool Board::Can_Escape_Check(const int &rowKing, const int &colKing, const Color
     }
     return false;
 }
-
 // nước đi giả định ( đi thì có bị chiếu tướng không )
 // return true là không bị chiếu tướng
 bool Board::Is_Safe_Move(const Piece *piece, const int &destRow, const int &destCol, const int &rowKing, const int &colKing, const Color &colorKing)
@@ -1055,7 +1053,6 @@ bool Board::Is_Insufficient_Material() const
 
     return false;
 }
-
 // Hòa do không còn nước đi hợp lệ
 bool Board::Has_Legal_Moves(Color color)
 {
@@ -1097,7 +1094,6 @@ bool Board::Has_Legal_Moves(Color color)
     }
     return false;
 }
-
 // Hòa do luật 50 nước
 bool Board::Is_Draw_By_50_Moves()
 {

@@ -12,7 +12,6 @@ void gameManager::Init_Game(std::string FEN, GameMode mode, const int &aiLevel)
 
 bool gameManager::Is_Valid_Input(const std::string &moveStr)
 {
-
     // 1. Kiểm tra định dạng chuỗi nhập vào (vd: e2e4)
     if (!isValidMoveFormat(moveStr))
         return false;
@@ -36,7 +35,6 @@ bool gameManager::Is_Valid_Input(const std::string &moveStr)
     // 3. Kiểm tra luật di chuyển của quân cờ đó
     if (!chessGame.Can_Move(start.first, start.second, dest.first, dest.second))
     {
-
         return false;
     }
 
@@ -265,7 +263,6 @@ std::string gameManager::Check_Game_State()
 
 std::string gameManager::Process_Web_Move(const std::string &moveStr)
 {
-
     // Lấy các nước đi hợp lệ
     if (moveStr.size() == 2)
     {
@@ -317,7 +314,7 @@ std::string gameManager::Process_Web_Move(const std::string &moveStr)
     std::pair<int, int> dest = convert_to_XY(moveStr.substr(2, 2));
 
     if (moveStr.size() == 5)
-        chessGame.piecePromotion = tolower(moveStr[4]);
+        chessGame.piecePromotion = toupper(moveStr[4]);
 
     // Hàm này chạy xong sẽ TỰ ĐỘNG đổi chessGame.sideToMove sang phe đối thủ
     chessGame.Execute_Move(start.first, start.second, dest.first, dest.second);
