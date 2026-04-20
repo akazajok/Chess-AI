@@ -3,6 +3,8 @@
 
 #include <cstdint>
 #include <utility>
+#include <string>
+#include <vector>
 
 class Board;
 

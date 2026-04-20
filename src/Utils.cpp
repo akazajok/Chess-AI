@@ -29,14 +29,25 @@ void updatePosition(std::string board[8][8], std::string move)
 }
 bool isValidMoveFormat(std::string move)
 {
-    if (move.length() == 4 &&
-        move[0] >= 'a' && move[0] <= 'h' &&
-        move[1] >= '1' && move[1] <= '8' &&
-        move[2] >= 'a' && move[2] <= 'h' &&
-        move[3] >= '1' && move[3] <= '8')
-        return true;
-    else
+    if (move.length() != 4 && move.length() != 5)
         return false;
+
+    if (move[0] < 'a' || move[0] > 'h' ||
+        move[1] < '1' || move[1] > '8' ||
+        move[2] < 'a' || move[2] > 'h' ||
+        move[3] < '1' || move[3] > '8')
+        return false;
+
+    if (move.length() == 5)
+    {
+        char p = tolower(move[4]);
+        if (p != 'q' && p != 'r' && p != 'b' && p != 'n')
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
 // Trong utils.cpp
 std::string to_lower(std::string s)

@@ -65,7 +65,6 @@ void Board::Set_Up_Board(std::string &FEN)
         }
     }
 }
-
 char Board::GetPieceChar(Piece *piece)
 {
     if (!piece)
@@ -152,6 +151,7 @@ bool Board::Can_Move(const int &startRow, const int &startCol, const int &destRo
     // Nước đi đặc biệt
     if (SpecialMove(startRow, startCol, destRow, destCol))
         return true;
+
     // kiểm tra biên
     if (destRow < 0 || destRow > 7 || destCol < 0 || destCol > 7)
         return false;
@@ -186,7 +186,6 @@ bool Board::Can_Move(const int &startRow, const int &startCol, const int &destRo
 
     return true;
 }
-
 // Thực thi di chuyển quân cờ
 void Board::Execute_Move(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
@@ -197,16 +196,18 @@ void Board::Execute_Move(const int &startRow, const int &startCol, const int &de
     Name movingName = movingPiece->Get_Name();
     bool isPawnDoubleMove = (movingName == Name::Pawn && abs(destRow - startRow) == 2);
     bool isEnPassant = IsEnPassantMove(startRow, startCol, destRow, destCol);
+    bool isCastling = IsCastlingMove(startRow, startCol, destRow, destCol);
+    bool isPromotionMove = IsPromotion(startRow, startCol, destRow, destCol);
 
     // LƯU LẠI LỊCH SỬ TRƯỚC KHI THAY ĐỔI
     SaveMoveToHistory(startRow, startCol, destRow, destCol);
 
     // THỰC HIỆN NƯỚC ĐI
-    if (IsCastlingMove(startRow, startCol, destRow, destCol) || isEnPassant)
+    if (isCastling || isEnPassant)
     {
         ExecuteSpecialMove(startRow, startCol, destRow, destCol);
     }
-    else if (IsPromotion(startRow, startCol, destRow, destCol))
+    else if (isPromotionMove)
     {
         ExecutePromotion(startRow, startCol, destRow, destCol);
     }
@@ -237,7 +238,6 @@ void Board::Execute_Move(const int &startRow, const int &startCol, const int &de
     // Đổi lượt người chơi
     sideToMove = (sideToMove == 'w') ? 'b' : 'w';
 }
-
 // Hàm cập nhật di chuyển quân cờ, ăn quân địch
 void Board::Update_Position(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
@@ -272,8 +272,8 @@ void Board::SaveMoveToHistory(int startRow, int startCol, int destRow, int destC
     record.FEN = GetFen();
     record.previousCastlingState = castlingFlags;
     record.capturedPiece = std::move(grid[destRow][destCol]); // move pointer từ grid về history
-    
-    // lưu thông tin quân 
+
+    // lưu thông tin quân
     if (IsPromotion(startRow, startCol, destRow, destCol))
     {
         Piece *promotedPiece = Get_Piece_At(destRow, destCol);
@@ -435,8 +435,13 @@ void Board::ExecuteSpecialMove(const int &startRow, const int &startCol, const i
 bool Board::IsPromotion(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
     Piece *piece = Get_Piece_At(startRow, startCol);
+    Piece *target = Get_Piece_At(destRow, destCol);
     if (!piece || piece->Get_Name() != Name::Pawn)
         return false; // check xem có phải quân tốt không
+
+    if (!piece->Is_Valid_Move(destRow, destCol, *this))
+        return false;
+
     if (piece->Get_Color() == Color::White)
     {
         return startRow == 1 && destRow == 0;
@@ -473,27 +478,37 @@ void Board::ExecutePromotion(const int &startRow, const int &startCol, const int
 }
 Name Board::GetPromotionChoice()
 {
-    //std::cout << "Phong hau | Chon quan | Q/R/B/N" << std::endl;
-    char choice;
-    std::cin >> choice;
-    choice = toupper(choice);
+    // Ép kiểu về chữ IN HOA để switch case hoạt động đúng
+    char choice = std::toupper(piecePromotion);
 
+    Name resultName; // Tạo một biến tạm để lưu kết quả
+
+    // Gán kết quả vào biến tạm thay vì return luôn
     switch (choice)
     {
     case 'Q':
-        return Name::Queen;
+        resultName = Name::Queen;
+        break;
     case 'R':
-        return Name::Rook;
+        resultName = Name::Rook;
+        break;
     case 'B':
-        return Name::Bishop;
+        resultName = Name::Bishop;
+        break;
     case 'N':
-        return Name::Knight;
+        resultName = Name::Knight;
+        break;
     default:
-        //std::cout << "Sai Syntax, Auto Queen nha";
-        return Name::Queen;
+        resultName = Name::Queen;
+        break;
     }
-}
 
+    // RESET BIẾN (Vì hàm chưa bị return)
+    piecePromotion = ' ';
+
+    // Trả về kết quả
+    return resultName;
+}
 void Board::ExecutePromotionWithPiece(const int &startRow, const int &startCol, const int &destRow, const int &destCol, Name promotionPiece)
 {
     Piece *pawn = Get_Piece_At(startRow, startCol);
@@ -525,10 +540,8 @@ void Board::ExecutePromotionWithPiece(const int &startRow, const int &startCol, 
 void Board::UndoPromotion(const int &startRow, const int &startCol, const int &destRow, const int &destCol, Color pawnColor)
 {
     grid[destRow][destCol] = nullptr;
-    
-   
+
     grid[destRow][destCol] = std::make_unique<Pawn>(pawnColor, destRow, destCol);
-    
 
     Update_Position(destRow, destCol, startRow, startCol);
 }
@@ -680,19 +693,16 @@ void Board::UpdateCastlingRights()
     if (castlingRights.empty())
         castlingRights = "-";
 }
-
 void Board::UndoCastling(const int &destRow, const int &destCol, const int &startRow, const int &startCol)
 {
     Update_Position(destRow, destCol, startRow, startCol);
-    
+
     bool isKingside = (startCol > destCol);
-    
+
     int rookDestCol = isKingside ? 7 : 0;
     int rookCurrCol = isKingside ? destCol - 1 : destCol + 1;
     Update_Position(destRow, rookCurrCol, destRow, rookDestCol);
 }
-
-
 
 //=============================En Passant Func=========================
 bool Board::IsEnPassantMove(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
@@ -722,18 +732,16 @@ void Board::ExecuteEnPassant(const int &startRow, const int &startCol, const int
     grid[startRow][destCol] = nullptr;
     enPassantTarget = "-";
 }
-
 void Board::UndoEnPassant(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
 {
     // quân Tốt bị ăn nằm ở cùng hàng với quân đi
     Color capturedPawnColor = (sideToMove == 'w') ? Color::Black : Color::White;
-    
+
     grid[startRow][destCol] = std::make_unique<Pawn>(capturedPawnColor, startRow, destCol);
-    
+
     Update_Position(destRow, destCol, startRow, startCol);
 }
-
-
+//======================================================================
 
 // lấy quân đang chặn đường || chiếu tướng
 Piece *Board::Get_Piece_On_Path(const int &startRow, const int &startCol, const int &destRow, const int &destCol)
@@ -762,7 +770,6 @@ Piece *Board::Get_Piece_On_Path(const int &startRow, const int &startCol, const 
     }
     return nullptr;
 }
-
 // lấy quân đang chiếu tướng
 Piece *Board::Get_Checking_Piece(const int &rowKing, const int &colKing, const Color &colorKing)
 {
@@ -869,7 +876,6 @@ Piece *Board::Get_Checking_Piece(const int &rowKing, const int &colKing, const C
     }
     return pieceCheck;
 }
-
 // có thể thoát chiếu tướng không
 bool Board::Can_Escape_Check(const int &rowKing, const int &colKing, const Color &colorKing)
 {
@@ -891,8 +897,8 @@ bool Board::Can_Escape_Check(const int &rowKing, const int &colKing, const Color
 
     // Ăn quân đang chiếu || Chặn đường quân chiếu
     // Di chuyển thì có bị chiếu tướng nữa không ???
-
     Piece *pieceCheck = Get_Checking_Piece(rowKing, colKing, colorKing);
+
     std::pair<int, int> posCheck = pieceCheck->Get_Position();
     // chiếu đôi thì không chạy được
     if (cntCheck > 1)
@@ -903,7 +909,9 @@ bool Board::Can_Escape_Check(const int &rowKing, const int &colKing, const Color
         // tìm quân có thể ăn quân mã ( đang chiếu tướng ) && ktra có còn bị chiếu tướng không ?
         Piece *piece = Get_Checking_Piece(posCheck.first, posCheck.second, pieceCheck->Get_Color());
         if (piece && Is_Safe_Move(piece, posCheck.first, posCheck.second, rowKing, colKing, colorKing))
+        {
             return true;
+        }
     }
     int stepRow = (posCheck.first == rowKing) ? 0 : (rowKing > posCheck.first) ? 1
                                                                                : -1;
@@ -915,13 +923,16 @@ bool Board::Can_Escape_Check(const int &rowKing, const int &colKing, const Color
     {
         Piece *piece = Get_Checking_Piece(currR, currC, pieceCheck->Get_Color());
         if (piece && Is_Safe_Move(piece, currR, currC, rowKing, colKing, colorKing))
-            return true;
+        {
+            if (piece->Get_Name() != Name::King)
+                return true;
+        }
+
         currR += stepRow;
         currC += stepCol;
     }
     return false;
 }
-
 // nước đi giả định ( đi thì có bị chiếu tướng không )
 // return true là không bị chiếu tướng
 bool Board::Is_Safe_Move(const Piece *piece, const int &destRow, const int &destCol, const int &rowKing, const int &colKing, const Color &colorKing)
@@ -1042,7 +1053,6 @@ bool Board::Is_Insufficient_Material() const
 
     return false;
 }
-
 // Hòa do không còn nước đi hợp lệ
 bool Board::Has_Legal_Moves(Color color)
 {
@@ -1084,7 +1094,6 @@ bool Board::Has_Legal_Moves(Color color)
     }
     return false;
 }
-
 // Hòa do luật 50 nước
 bool Board::Is_Draw_By_50_Moves()
 {
@@ -1093,6 +1102,39 @@ bool Board::Is_Draw_By_50_Moves()
     return false;
 }
 //-------------------------------------------------------------------------------------------------
+
+std::vector<MoveInfor> Board::getValidMoves(int row, int col)
+{
+    std::vector<MoveInfor> validMoves;
+    Piece *piece = Get_Piece_At(row, col);
+    if (!piece)
+        return validMoves;
+
+    for (int r = 0; r < 8; ++r)
+    {
+        for (int c = 0; c < 8; ++c)
+        {
+            bool isCapture = false, isPromotion = false;
+            if (Can_Move(row, col, r, c))
+            {
+                if (IsPromotion(row, col, r, c))
+                {
+                    isPromotion = true;
+                }
+                Piece *target = Get_Piece_At(r, c);
+                std::string id = convert_from_XY(r, c);
+
+                if (target)
+                {
+                    if (target->Get_Color() != piece->Get_Color())
+                        isCapture = true;
+                }
+                validMoves.push_back({id, isCapture, isPromotion});
+            }
+        }
+    }
+    return validMoves;
+}
 
 // Hàm hiển thị để kiểm tra
 void Board::Display()

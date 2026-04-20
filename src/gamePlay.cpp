@@ -28,18 +28,24 @@ bool gameManager::Is_Valid_Input(const std::string &moveStr)
     char currentTurn = chessGame.sideToMove;
     if ((currentTurn == 'w' && p->Get_Color() != Color::White) ||
         (currentTurn == 'b' && p->Get_Color() != Color::Black))
-        return false;
+    {
 
+        return false;
+    }
     // 3. Kiểm tra luật di chuyển của quân cờ đó
     if (!chessGame.Can_Move(start.first, start.second, dest.first, dest.second))
+    {
         return false;
+    }
 
     // 4. Kiểm tra xem sau nước đi Vua có bị chiếu tướng không
     int tempRowKing = (p->Get_Name() == Name::King) ? dest.first : rowKing;
     int tempColKing = (p->Get_Name() == Name::King) ? dest.second : colKing;
 
     if (!chessGame.Is_Safe_Move(p, dest.first, dest.second, tempRowKing, tempColKing, colorKing))
+    {
         return false;
+    }
 
     return true;
 }
@@ -221,21 +227,29 @@ std::string gameManager::Check_Game_State()
     // 1. Kiểm tra xem Vua có bị ăn mất không (Trường hợp cờ biến thể/lỗi game)
     Piece *king = chessGame.Get_Piece_At(rK, cK);
     if (!king || king->Get_Name() != Name::King)
+    {
         return "KING_CAPTURED|" + opponent + "|" + chessGame.GetFen();
+    }
 
     // 2. Kiểm tra Hòa cờ do thiếu quân hoặc luật 50 nước
     if (chessGame.Is_Insufficient_Material())
+    {
         return "DRAW|Thiếu quân chiếu bí (Insufficient Material)|" + chessGame.GetFen();
+    }
 
     if (chessGame.Is_Draw_By_50_Moves())
+    {
         return "DRAW|Luật 50 nước (50-move rule)|" + chessGame.GetFen();
+    }
 
     // 3. Kiểm tra Chiếu / Chiếu Bí / Hòa Pat (Stalemate)
     if (chessGame.Get_Checking_Piece(rK, cK, cColor))
     {
         // Bị chiếu mà hết đường lui -> Chiếu bí
         if (!chessGame.Can_Escape_Check(rK, cK, cColor))
+        {
             return "CHECKMATE|" + opponent + "|" + chessGame.GetFen();
+        }
     }
     else if (!chessGame.Has_Legal_Moves(cColor))
     {
@@ -249,23 +263,58 @@ std::string gameManager::Check_Game_State()
 
 std::string gameManager::Process_Web_Move(const std::string &moveStr)
 {
+    // Lấy các nước đi hợp lệ
+    if (moveStr.size() == 2)
+    {
+        std::pair<int, int> pos = convert_to_XY(moveStr);
+        Piece *piece = chessGame.Get_Piece_At(pos.first, pos.second);
+
+        if (piece)
+        {
+            std::vector<MoveInfor> moves = chessGame.getValidMoves(pos.first, pos.second);
+
+            // Xây dựng chuỗi JSON
+            std::string jsonResult = "[";
+            for (size_t i = 0; i < moves.size(); ++i)
+            {
+                jsonResult += "{\"squareId\":\"" + moves[i].squareId + "\",";
+                jsonResult += "\"isCapture\":" + std::string(moves[i].isCapture ? "true" : "false") + ",";
+                jsonResult += "\"isPromotion\":" + std::string(moves[i].isPromotion ? "true" : "false");
+                jsonResult += "}";
+
+                if (i < moves.size() - 1)
+                    jsonResult += ",";
+            }
+            jsonResult += "]";
+
+            // LẬP TỨC TRẢ VỀ CHUỖI JSON (Ngăn code chạy tiếp xuống dưới)
+            return jsonResult;
+        }
+        else
+        {
+            return "[]"; // Trả về mảng rỗng nếu click vào ô không có quân
+        }
+    }
+
+    // Nút f5 thì newgame luôn
     if (moveStr == "reset")
         return chessGame.GetFen();
 
-    // 1: Cập nhật tọa độ Vua cho class để hàm Is_Valid_Input không bị lỗi -1,-1
+    // Cập nhật tọa độ Vua cho class để hàm Is_Valid_Input không bị lỗi -1,-1
     rowKing = (chessGame.sideToMove == 'w') ? chessGame.rowKingWhite : chessGame.rowKingBlack;
     colKing = (chessGame.sideToMove == 'w') ? chessGame.colKingWhite : chessGame.colKingBlack;
     colorKing = (chessGame.sideToMove == 'w') ? Color::White : Color::Black;
 
-    // 2: Kiểm tra nước đi có đúng luật không
+    // Đi bình thường
     if (!Is_Valid_Input(moveStr))
-    {
         return "INVALID";
-    }
 
     // 3: Thực hiện nước đi
     std::pair<int, int> start = convert_to_XY(moveStr.substr(0, 2));
     std::pair<int, int> dest = convert_to_XY(moveStr.substr(2, 2));
+
+    if (moveStr.size() == 5)
+        chessGame.piecePromotion = toupper(moveStr[4]);
 
     // Hàm này chạy xong sẽ TỰ ĐỘNG đổi chessGame.sideToMove sang phe đối thủ
     chessGame.Execute_Move(start.first, start.second, dest.first, dest.second);
