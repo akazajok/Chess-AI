@@ -1,11 +1,11 @@
 # Graph Report - D:\CODING\Chess-AI  (2026-04-21)
 
 ## Corpus Check
-- 24 files · ~23,229 words
+- 24 files · ~23,203 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 122 nodes · 271 edges · 23 communities detected
+- 122 nodes · 271 edges · 24 communities detected
 - Extraction: 72% EXTRACTED · 28% INFERRED · 0% AMBIGUOUS · INFERRED: 76 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
@@ -33,6 +33,7 @@
 - [[_COMMUNITY_Community 20|Community 20]]
 - [[_COMMUNITY_Community 21|Community 21]]
 - [[_COMMUNITY_Community 22|Community 22]]
+- [[_COMMUNITY_Community 23|Community 23]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `Get_Name()` - 20 edges
@@ -73,24 +74,24 @@ Cohesion: 0.22
 Nodes (9): ParseCastlingRights(), Set_Up_Board(), Init_Game(), Process_Web_Move(), main(), convert_to_XY(), isValidMoveFormat(), to_lower() (+1 more)
 
 ### Community 3 - "Community 3"
-Cohesion: 0.33
-Nodes (9): bindEvents(), createBoard(), formatTime(), handleNewGame(), init(), resetClockBySelection(), startClock(), stopClock() (+1 more)
+Cohesion: 0.36
+Nodes (8): bindEvents(), createBoard(), formatTime(), handleNewGame(), init(), resetClockBySelection(), startClock(), updateTimerUI()
 
 ### Community 4 - "Community 4"
-Cohesion: 0.28
-Nodes (9): handleRedo(), handleUndo(), parseResult(), postJson(), requestNewGame(), requestRedo(), requestUndo(), sendMoveToServer() (+1 more)
+Cohesion: 0.32
+Nodes (8): clearBoardPieces(), clearHighlights(), getSideToMove(), handleSquareClick(), refreshBoardFromFen(), renderCapturedPieces(), sendMoveToServer(), updateStatusByFen()
 
 ### Community 5 - "Community 5"
-Cohesion: 0.29
-Nodes (8): clearBoardPieces(), clearHighlights(), getSideToMove(), handleSquareClick(), inferCapturedPiece(), refreshBoardFromFen(), renderCapturedPieces(), updateStatusByFen()
+Cohesion: 0.4
+Nodes (5): handleUndo(), parseResult(), requestUndo(), showGameOver(), stopClock()
 
 ### Community 6 - "Community 6"
-Cohesion: 0.67
-Nodes (3): extractBoardPart(), fenToBoardMap(), loadFen()
+Cohesion: 0.5
+Nodes (4): handleRedo(), postJson(), requestNewGame(), requestRedo()
 
 ### Community 7 - "Community 7"
-Cohesion: 1.0
-Nodes (0): 
+Cohesion: 0.5
+Nodes (4): extractBoardPart(), fenToBoardMap(), inferCapturedPiece(), loadFen()
 
 ### Community 8 - "Community 8"
 Cohesion: 1.0
@@ -152,38 +153,42 @@ Nodes (0):
 Cohesion: 1.0
 Nodes (0): 
 
+### Community 23 - "Community 23"
+Cohesion: 1.0
+Nodes (0): 
+
 ## Knowledge Gaps
-- **Thin community `Community 7`** (2 nodes): `sever.js`, `startEngine()`
+- **Thin community `Community 8`** (2 nodes): `sever.js`, `startEngine()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 8`** (2 nodes): `Bishop()`, `Bishop.h`
+- **Thin community `Community 9`** (2 nodes): `Bishop()`, `Bishop.h`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 9`** (2 nodes): `Board()`, `Board.h`
+- **Thin community `Community 10`** (2 nodes): `Board()`, `Board.h`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 10`** (2 nodes): `King.h`, `Piece()`
+- **Thin community `Community 11`** (2 nodes): `King.h`, `Piece()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 11`** (2 nodes): `Knight.h`, `Knight()`
+- **Thin community `Community 12`** (2 nodes): `Knight.h`, `Knight()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 12`** (2 nodes): `Pawn.h`, `Piece()`
+- **Thin community `Community 13`** (2 nodes): `Pawn.h`, `Piece()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 13`** (2 nodes): `Queen.h`, `Piece()`
+- **Thin community `Community 14`** (2 nodes): `Queen.h`, `Piece()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 14`** (2 nodes): `Rook.h`, `Piece()`
+- **Thin community `Community 15`** (2 nodes): `Rook.h`, `Piece()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 15`** (2 nodes): `Stockfish.h`, `Stockfish()`
+- **Thin community `Community 16`** (2 nodes): `Stockfish.h`, `Stockfish()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 16`** (2 nodes): `Is_Valid_Move()`, `Bishop.cpp`
+- **Thin community `Community 17`** (2 nodes): `Is_Valid_Move()`, `Bishop.cpp`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 17`** (2 nodes): `King.cpp`, `Is_Valid_Move()`
+- **Thin community `Community 18`** (2 nodes): `King.cpp`, `Is_Valid_Move()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 18`** (2 nodes): `Knight.cpp`, `Is_Valid_Move()`
+- **Thin community `Community 19`** (2 nodes): `Knight.cpp`, `Is_Valid_Move()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 19`** (2 nodes): `Pawn.cpp`, `Is_Valid_Move()`
+- **Thin community `Community 20`** (2 nodes): `Pawn.cpp`, `Is_Valid_Move()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 20`** (2 nodes): `Queen.cpp`, `Is_Valid_Move()`
+- **Thin community `Community 21`** (2 nodes): `Queen.cpp`, `Is_Valid_Move()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 21`** (1 nodes): `Piece.h`
+- **Thin community `Community 22`** (1 nodes): `Piece.h`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 22`** (1 nodes): `Utils.h`
+- **Thin community `Community 23`** (1 nodes): `Utils.h`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions

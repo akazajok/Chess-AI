@@ -9,7 +9,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\sever.js",
       "source_location": "L1",
       "id": "d_coding_chess_ai_sever_js",
-      "community": 7,
+      "community": 8,
       "norm_label": "sever.js"
     },
     {
@@ -18,7 +18,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\sever.js",
       "source_location": "L18",
       "id": "sever_startengine",
-      "community": 7,
+      "community": 8,
       "norm_label": "startengine()"
     },
     {
@@ -27,7 +27,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\include\\Bishop.h",
       "source_location": "L1",
       "id": "d_coding_chess_ai_include_bishop_h",
-      "community": 8,
+      "community": 9,
       "norm_label": "bishop.h"
     },
     {
@@ -36,7 +36,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\include\\Bishop.h",
       "source_location": "L8",
       "id": "bishop_bishop",
-      "community": 8,
+      "community": 9,
       "norm_label": "bishop()"
     },
     {
@@ -45,7 +45,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\include\\Board.h",
       "source_location": "L1",
       "id": "d_coding_chess_ai_include_board_h",
-      "community": 9,
+      "community": 10,
       "norm_label": "board.h"
     },
     {
@@ -54,7 +54,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\include\\Board.h",
       "source_location": "L30",
       "id": "board_board",
-      "community": 9,
+      "community": 10,
       "norm_label": "board()"
     },
     {
@@ -81,7 +81,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\include\\King.h",
       "source_location": "L1",
       "id": "d_coding_chess_ai_include_king_h",
-      "community": 10,
+      "community": 11,
       "norm_label": "king.h"
     },
     {
@@ -90,7 +90,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\include\\King.h",
       "source_location": "L8",
       "id": "king_piece",
-      "community": 10,
+      "community": 11,
       "norm_label": "piece()"
     },
     {
@@ -99,7 +99,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\include\\Knight.h",
       "source_location": "L1",
       "id": "d_coding_chess_ai_include_knight_h",
-      "community": 11,
+      "community": 12,
       "norm_label": "knight.h"
     },
     {
@@ -108,7 +108,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\include\\Knight.h",
       "source_location": "L8",
       "id": "knight_knight",
-      "community": 11,
+      "community": 12,
       "norm_label": "knight()"
     },
     {
@@ -117,7 +117,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\include\\Pawn.h",
       "source_location": "L1",
       "id": "d_coding_chess_ai_include_pawn_h",
-      "community": 12,
+      "community": 13,
       "norm_label": "pawn.h"
     },
     {
@@ -126,7 +126,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\include\\Pawn.h",
       "source_location": "L8",
       "id": "pawn_piece",
-      "community": 12,
+      "community": 13,
       "norm_label": "piece()"
     },
     {
@@ -135,7 +135,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\include\\Piece.h",
       "source_location": "L1",
       "id": "d_coding_chess_ai_include_piece_h",
-      "community": 21,
+      "community": 22,
       "norm_label": "piece.h"
     },
     {
@@ -144,7 +144,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\include\\Queen.h",
       "source_location": "L1",
       "id": "d_coding_chess_ai_include_queen_h",
-      "community": 13,
+      "community": 14,
       "norm_label": "queen.h"
     },
     {
@@ -153,7 +153,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\include\\Queen.h",
       "source_location": "L8",
       "id": "queen_piece",
-      "community": 13,
+      "community": 14,
       "norm_label": "piece()"
     },
     {
@@ -162,7 +162,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\include\\Rook.h",
       "source_location": "L1",
       "id": "d_coding_chess_ai_include_rook_h",
-      "community": 14,
+      "community": 15,
       "norm_label": "rook.h"
     },
     {
@@ -171,7 +171,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\include\\Rook.h",
       "source_location": "L7",
       "id": "rook_piece",
-      "community": 14,
+      "community": 15,
       "norm_label": "piece()"
     },
     {
@@ -180,7 +180,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\include\\Stockfish.h",
       "source_location": "L1",
       "id": "d_coding_chess_ai_include_stockfish_h",
-      "community": 15,
+      "community": 16,
       "norm_label": "stockfish.h"
     },
     {
@@ -189,7 +189,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\include\\Stockfish.h",
       "source_location": "L8",
       "id": "stockfish_stockfish",
-      "community": 15,
+      "community": 16,
       "norm_label": "stockfish()"
     },
     {
@@ -198,7 +198,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\include\\Utils.h",
       "source_location": "L1",
       "id": "d_coding_chess_ai_include_utils_h",
-      "community": 22,
+      "community": 23,
       "norm_label": "utils.h"
     },
     {
@@ -207,7 +207,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\src\\Bishop.cpp",
       "source_location": "L1",
       "id": "d_coding_chess_ai_src_bishop_cpp",
-      "community": 16,
+      "community": 17,
       "norm_label": "bishop.cpp"
     },
     {
@@ -216,7 +216,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\src\\Bishop.cpp",
       "source_location": "L3",
       "id": "bishop_is_valid_move",
-      "community": 16,
+      "community": 17,
       "norm_label": "is_valid_move()"
     },
     {
@@ -612,7 +612,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\src\\King.cpp",
       "source_location": "L1",
       "id": "d_coding_chess_ai_src_king_cpp",
-      "community": 17,
+      "community": 18,
       "norm_label": "king.cpp"
     },
     {
@@ -621,7 +621,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\src\\King.cpp",
       "source_location": "L3",
       "id": "king_is_valid_move",
-      "community": 17,
+      "community": 18,
       "norm_label": "is_valid_move()"
     },
     {
@@ -630,7 +630,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\src\\Knight.cpp",
       "source_location": "L1",
       "id": "d_coding_chess_ai_src_knight_cpp",
-      "community": 18,
+      "community": 19,
       "norm_label": "knight.cpp"
     },
     {
@@ -639,7 +639,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\src\\Knight.cpp",
       "source_location": "L3",
       "id": "knight_is_valid_move",
-      "community": 18,
+      "community": 19,
       "norm_label": "is_valid_move()"
     },
     {
@@ -666,7 +666,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\src\\Pawn.cpp",
       "source_location": "L1",
       "id": "d_coding_chess_ai_src_pawn_cpp",
-      "community": 19,
+      "community": 20,
       "norm_label": "pawn.cpp"
     },
     {
@@ -675,7 +675,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\src\\Pawn.cpp",
       "source_location": "L3",
       "id": "pawn_is_valid_move",
-      "community": 19,
+      "community": 20,
       "norm_label": "is_valid_move()"
     },
     {
@@ -738,7 +738,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\src\\Queen.cpp",
       "source_location": "L1",
       "id": "d_coding_chess_ai_src_queen_cpp",
-      "community": 20,
+      "community": 21,
       "norm_label": "queen.cpp"
     },
     {
@@ -747,7 +747,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\src\\Queen.cpp",
       "source_location": "L3",
       "id": "queen_is_valid_move",
-      "community": 20,
+      "community": 21,
       "norm_label": "is_valid_move()"
     },
     {
@@ -837,7 +837,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L48",
       "id": "chess_getsidetomove",
-      "community": 5,
+      "community": 4,
       "norm_label": "getsidetomove()"
     },
     {
@@ -855,7 +855,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L60",
       "id": "chess_extractboardpart",
-      "community": 6,
+      "community": 7,
       "norm_label": "extractboardpart()"
     },
     {
@@ -864,7 +864,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L64",
       "id": "chess_fentoboardmap",
-      "community": 6,
+      "community": 7,
       "norm_label": "fentoboardmap()"
     },
     {
@@ -873,7 +873,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L84",
       "id": "chess_infercapturedpiece",
-      "community": 5,
+      "community": 7,
       "norm_label": "infercapturedpiece()"
     },
     {
@@ -882,7 +882,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L107",
       "id": "chess_rendercapturedpieces",
-      "community": 5,
+      "community": 4,
       "norm_label": "rendercapturedpieces()"
     },
     {
@@ -891,7 +891,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L132",
       "id": "chess_updatestatusbyfen",
-      "community": 5,
+      "community": 4,
       "norm_label": "updatestatusbyfen()"
     },
     {
@@ -909,7 +909,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L151",
       "id": "chess_stopclock",
-      "community": 3,
+      "community": 5,
       "norm_label": "stopclock()"
     },
     {
@@ -945,7 +945,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L231",
       "id": "chess_clearboardpieces",
-      "community": 5,
+      "community": 4,
       "norm_label": "clearboardpieces()"
     },
     {
@@ -954,7 +954,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L235",
       "id": "chess_clearhighlights",
-      "community": 5,
+      "community": 4,
       "norm_label": "clearhighlights()"
     },
     {
@@ -963,7 +963,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L241",
       "id": "chess_loadfen",
-      "community": 6,
+      "community": 7,
       "norm_label": "loadfen()"
     },
     {
@@ -972,7 +972,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L270",
       "id": "chess_refreshboardfromfen",
-      "community": 5,
+      "community": 4,
       "norm_label": "refreshboardfromfen()"
     },
     {
@@ -981,7 +981,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L281",
       "id": "chess_postjson",
-      "community": 4,
+      "community": 6,
       "norm_label": "postjson()"
     },
     {
@@ -990,7 +990,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L290",
       "id": "chess_parseresult",
-      "community": 4,
+      "community": 5,
       "norm_label": "parseresult()"
     },
     {
@@ -1008,7 +1008,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L327",
       "id": "chess_requestnewgame",
-      "community": 4,
+      "community": 6,
       "norm_label": "requestnewgame()"
     },
     {
@@ -1017,7 +1017,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L332",
       "id": "chess_requestundo",
-      "community": 4,
+      "community": 5,
       "norm_label": "requestundo()"
     },
     {
@@ -1026,7 +1026,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L337",
       "id": "chess_requestredo",
-      "community": 4,
+      "community": 6,
       "norm_label": "requestredo()"
     },
     {
@@ -1044,7 +1044,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L362",
       "id": "chess_handleundo",
-      "community": 4,
+      "community": 5,
       "norm_label": "handleundo()"
     },
     {
@@ -1053,7 +1053,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L384",
       "id": "chess_handleredo",
-      "community": 4,
+      "community": 6,
       "norm_label": "handleredo()"
     },
     {
@@ -1071,7 +1071,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L414",
       "id": "chess_handlesquareclick",
-      "community": 5,
+      "community": 4,
       "norm_label": "handlesquareclick()"
     },
     {
@@ -1080,7 +1080,7 @@
       "source_file": "D:\\CODING\\Chess-AI\\web\\js\\chess.js",
       "source_location": "L462",
       "id": "chess_showgameover",
-      "community": 4,
+      "community": 5,
       "norm_label": "showgameover()"
     },
     {
