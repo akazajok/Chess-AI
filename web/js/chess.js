@@ -21,22 +21,23 @@ const bottomPlayerEl = document.getElementById('bottom-player');
 // ===== Asset paths (dễ đổi về sau) =====
 const PIECE_ASSET_BASE = 'piece/';
 const pieceImages = {
-    K: `${PIECE_ASSET_BASE}wK.jpg`, Q: `${PIECE_ASSET_BASE}wQ.jpg`, R: `${PIECE_ASSET_BASE}wR.jpg`,
-    B: `${PIECE_ASSET_BASE}wB.jpg`, N: `${PIECE_ASSET_BASE}wN.jpg`, P: `${PIECE_ASSET_BASE}wP.jpg`,
-    k: `${PIECE_ASSET_BASE}bK.jpg`, q: `${PIECE_ASSET_BASE}bQ.jpg`, r: `${PIECE_ASSET_BASE}bR.jpg`,
-    b: `${PIECE_ASSET_BASE}bB.jpg`, n: `${PIECE_ASSET_BASE}bN.jpg`, p: `${PIECE_ASSET_BASE}bP.jpg`
+    K: `${PIECE_ASSET_BASE}wK.png`, Q: `${PIECE_ASSET_BASE}wQ.png`, R: `${PIECE_ASSET_BASE}wR.png`,
+    B: `${PIECE_ASSET_BASE}wB.png`, N: `${PIECE_ASSET_BASE}wN.png`, P: `${PIECE_ASSET_BASE}wP.png`,
+    k: `${PIECE_ASSET_BASE}bK.png`, q: `${PIECE_ASSET_BASE}bQ.png`, r: `${PIECE_ASSET_BASE}bR.png`,
+    b: `${PIECE_ASSET_BASE}bB.png`, n: `${PIECE_ASSET_BASE}bN.png`, p: `${PIECE_ASSET_BASE}bP.png`
 };
 
 const defaultFEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
-const initialPieceCount = {
-    P: 8, R: 2, N: 2, B: 2, Q: 1,
-    p: 8, r: 2, n: 2, b: 2, q: 1
-};
-
 let currentFEN = defaultFEN;
 let selectedSquare = null;
 let gameEnded = false;
+
+// Captured pieces theo lịch sử nước đi (không suy từ FEN để tránh sai khi promotion)
+let capturedByWhite = []; // trắng ăn quân đen
+let capturedByBlack = []; // đen ăn quân trắng
+let appliedMoves = [];    // stack đã đi
+let redoMoves = [];       // stack đã undo
 
 // ===== Timer state =====
 let timerId = null;
@@ -60,37 +61,50 @@ function extractBoardPart(fen) {
     return fen.split(' ')[0] || '';
 }
 
-function countPiecesFromFen(fen) {
-    const board = extractBoardPart(fen);
-    const count = {};
-    for (const ch of board) {
-        if (pieceImages[ch]) count[ch] = (count[ch] || 0) + 1;
-    }
-    return count;
-}
+function fenToBoardMap(fen) {
+    const board = new Map();
+    const boardPart = extractBoardPart(fen);
+    const rows = boardPart.split('/');
 
-function buildCapturedList() {
-    const now = countPiecesFromFen(currentFEN);
-
-    // captured by White = black pieces missing
-    // captured by Black = white pieces missing
-    const capturedByWhite = [];
-    const capturedByBlack = [];
-
-    for (const key of Object.keys(initialPieceCount)) {
-        const missing = (initialPieceCount[key] || 0) - (now[key] || 0);
-        for (let i = 0; i < missing; i++) {
-            if (key === key.toLowerCase()) capturedByWhite.push(key); // black piece captured
-            else capturedByBlack.push(key); // white piece captured
+    for (let r = 0; r < 8; r++) {
+        let c = 0;
+        for (const ch of rows[r]) {
+            if (!Number.isNaN(Number(ch))) {
+                c += Number(ch);
+                continue;
+            }
+            const square = String.fromCharCode('a'.charCodeAt(0) + c) + (8 - r);
+            board.set(square, ch);
+            c++;
         }
     }
+    return board;
+}
 
-    return { capturedByWhite, capturedByBlack };
+function inferCapturedPiece(beforeFen, moveStr) {
+    const from = moveStr.slice(0, 2);
+    const to = moveStr.slice(2, 4);
+    const board = fenToBoardMap(beforeFen);
+    const movingPiece = board.get(from);
+    if (!movingPiece) return null;
+
+    // Capture thường
+    const directCapture = board.get(to);
+    if (directCapture) return directCapture;
+
+    // En passant: tốt đi chéo vào ô trống
+    const isPawn = movingPiece.toLowerCase() === 'p';
+    const isDiagonalMove = Math.abs(from.charCodeAt(0) - to.charCodeAt(0)) === 1 &&
+        Math.abs(Number(from[1]) - Number(to[1])) === 1;
+    if (isPawn && isDiagonalMove) {
+        const epSquare = `${to[0]}${from[1]}`;
+        return board.get(epSquare) || null;
+    }
+
+    return null;
 }
 
 function renderCapturedPieces() {
-    const { capturedByWhite, capturedByBlack } = buildCapturedList();
-
     capturedBlackList.innerHTML = '';
     capturedWhiteList.innerHTML = '';
 
@@ -332,6 +346,10 @@ async function handleNewGame() {
         gameEnded = false;
         document.getElementById('game-over-modal').classList.remove('active');
         if (moveListEl) moveListEl.innerHTML = '';
+        capturedByWhite = [];
+        capturedByBlack = [];
+        appliedMoves = [];
+        redoMoves = [];
         resetClockBySelection();
         refreshBoardFromFen(fen);
         startClock();
@@ -347,6 +365,16 @@ async function handleUndo() {
         const result = await requestUndo();
         const fen = parseResult(result);
         if (!fen) return;
+
+        if (appliedMoves.length > 0) {
+            const last = appliedMoves.pop();
+            redoMoves.push(last);
+            if (last.capturedPiece) {
+                if (last.mover === 'w') capturedByWhite.pop();
+                else capturedByBlack.pop();
+            }
+        }
+
         refreshBoardFromFen(fen);
     } catch (error) {
         console.error('Undo lỗi:', error);
@@ -359,6 +387,16 @@ async function handleRedo() {
         const result = await requestRedo();
         const fen = parseResult(result);
         if (!fen) return;
+
+        if (redoMoves.length > 0) {
+            const again = redoMoves.pop();
+            appliedMoves.push(again);
+            if (again.capturedPiece) {
+                if (again.mover === 'w') capturedByWhite.push(again.capturedPiece);
+                else capturedByBlack.push(again.capturedPiece);
+            }
+        }
+
         refreshBoardFromFen(fen);
     } catch (error) {
         console.error('Redo lỗi:', error);
@@ -396,13 +434,23 @@ function handleSquareClick(squareId) {
     }
 
     const moveString = oldSquare.id + clickedSquare.id;
+    const beforeFen = currentFEN;
+    const mover = getSideToMove(beforeFen);
+    const capturedPiece = inferCapturedPiece(beforeFen, moveString);
     oldSquare.classList.remove('selected');
     selectedSquare = null;
 
     sendMoveToServer(moveString)
         .then(success => {
             if (success) {
+                appliedMoves.push({ move: moveString, mover, capturedPiece });
+                redoMoves = [];
+                if (capturedPiece) {
+                    if (mover === 'w') capturedByWhite.push(capturedPiece);
+                    else capturedByBlack.push(capturedPiece);
+                }
                 addMoveToHistory(moveString);
+                renderCapturedPieces();
             }
         })
         .catch(error => {
